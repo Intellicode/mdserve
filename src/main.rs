@@ -83,7 +83,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Run it
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await?;
-    println!("Listening on http://127.0.0.1:3000");
+    println!(
+        "
+\x1b[32m
+╔═══════════════════════════════════════╗
+║                                       ║
+║   🚀 Markdown Server is running!      ║
+║   ➜ http://127.0.0.1:3000             ║
+║                                       ║
+╚═══════════════════════════════════════╝
+\x1b[0m"
+    );
     axum::serve(listener, app).await?;
 
     Ok(())

@@ -67,7 +67,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let mut path = markdown_dir.join(path.0);
                 let template = template.clone();
                 async move {
-                    if path.to_str().map_or(false, |s| s.ends_with('/')) {
+                    if path.to_str().is_some_and(|s| s.ends_with('/')) {
                         path.push("index.md");
                     }
 

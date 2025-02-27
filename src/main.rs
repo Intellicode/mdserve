@@ -209,10 +209,52 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Html(html)
     }
 
+    // Handler for serving markdown files
+    async fn serve_markdown(path: PathBuf) -> Html<String> {
+        let content =
+            fs::read_to_string(&path).unwrap_or_else(|_| "# Error\nFile not found.".to_string());
+
+        // Set up options for GitHub-flavored markdown
+        let mut options = Options::empty();
+        options.insert(Options::ENABLE_STRIKETHROUGH);
+        options.insert(Options::ENABLE_TABLES);
+        options.insert(Options::ENABLE_TASKLISTS);
+
+        // Parse and render markdown
+        let parser = Parser::new_ext(&content, options);
+        let mut html_output = String::new();
+        html::push_html(&mut html_output, parser);
+
+        Html(format!(
+            r#"<!DOCTYPE html><title>Hello</title>{}"#,
+            html_output
+        )) // Keep your existing HTML template
+    }
+
     // Build our application with routes
     let serve_dir = dir.clone();
+    let markdown_dir = dir.clone();
     let app = Router::new()
         .route("/", get(move || serve_index(dir)))
+        .route(
+            "/*path",
+            get(move |path: axum::extract::Path<String>| {
+                let mut path = markdown_dir.join(path.0);
+                async move {
+                    // If path ends with '/', append 'index.md'
+                    if path.to_str().map_or(false, |s| s.ends_with('/')) {
+                        path.push("index.md");
+                    }
+
+                    if path.extension().and_then(|ext| ext.to_str()) == Some("md") {
+                        serve_markdown(path).await
+                    } else {
+                        // Return a 404 or handle non-markdown files
+                        Html("Not found".to_string())
+                    }
+                }
+            }),
+        )
         .fallback_service(get_service(ServeDir::new(serve_dir)));
 
     // Run it

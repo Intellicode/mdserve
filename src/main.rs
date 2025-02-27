@@ -82,17 +82,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .fallback_service(get_service(ServeDir::new(serve_dir)));
 
     // Run it
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await?;
+    let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
+    let addr = format!("127.0.0.1:{}", port);
+    let listener = tokio::net::TcpListener::bind(&addr).await?;
     println!(
         "
 \x1b[32m
 ╔═══════════════════════════════════════╗
 ║                                       ║
 ║   🚀 Markdown Server is running!      ║
-║   ➜ http://127.0.0.1:3000             ║
+║   ➜ http://{:<27}║
 ║                                       ║
 ╚═══════════════════════════════════════╝
-\x1b[0m"
+\x1b[0m",
+        addr
     );
     axum::serve(listener, app).await?;
 

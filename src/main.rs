@@ -27,43 +27,31 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load template at startup
     let template = include_str!("../templates/markdown.html");
 
-    // Handler for serving index.md
-    async fn serve_index(dir: PathBuf, template: String) -> Html<String> {
-        let index_path = dir.join("index.md");
-        let content = fs::read_to_string(index_path)
-            .unwrap_or_else(|_| "# Welcome\nIndex file not found.".to_string());
-
-        // Set up options for GitHub-flavored markdown
+    // Common markdown rendering function
+    fn render_markdown(content: &str, template: String) -> Html<String> {
         let mut options = Options::empty();
         options.insert(Options::ENABLE_STRIKETHROUGH);
         options.insert(Options::ENABLE_TABLES);
         options.insert(Options::ENABLE_TASKLISTS);
 
-        // Parse and render markdown
-        let parser = Parser::new_ext(&content, options);
+        let parser = Parser::new_ext(content, options);
         let mut html_output = String::new();
         html::push_html(&mut html_output, parser);
 
         Html(template.replace("{}", &html_output))
     }
 
-    // Handler for serving markdown files
+    // Simplified handlers
+    async fn serve_index(dir: PathBuf, template: String) -> Html<String> {
+        let content = fs::read_to_string(dir.join("index.md"))
+            .unwrap_or_else(|_| "# Welcome\nIndex file not found.".to_string());
+        render_markdown(&content, template)
+    }
+
     async fn serve_markdown(path: PathBuf, template: String) -> Html<String> {
         let content =
             fs::read_to_string(&path).unwrap_or_else(|_| "# Error\nFile not found.".to_string());
-
-        // Set up options for GitHub-flavored markdown
-        let mut options = Options::empty();
-        options.insert(Options::ENABLE_STRIKETHROUGH);
-        options.insert(Options::ENABLE_TABLES);
-        options.insert(Options::ENABLE_TASKLISTS);
-
-        // Parse and render markdown
-        let parser = Parser::new_ext(&content, options);
-        let mut html_output = String::new();
-        html::push_html(&mut html_output, parser);
-
-        Html(template.replace("{}", &html_output))
+        render_markdown(&content, template)
     }
 
     // Build our application with routes

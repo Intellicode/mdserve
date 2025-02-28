@@ -1,102 +1,12 @@
-use axum::{
-    Router,
-    response::Html,
-    routing::{get, get_service},
-};
-use pulldown_cmark::{Options, Parser, html};
-use std::env;
-use std::fs;
-use std::path::PathBuf;
-use tower_http::services::ServeDir;
+mod handlers;
+mod markdown;
+mod server;
+mod utils;
+
+use server::Server;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Get directory path from command line args
-    let args: Vec<String> = env::args().collect();
-    if args.len() != 2 {
-        eprintln!("Usage: {} <directory>", args[0]);
-        std::process::exit(1);
-    }
-
-    let dir = PathBuf::from(&args[1]);
-    if !dir.is_dir() {
-        eprintln!("Error: {} is not a directory", args[1]);
-        std::process::exit(1);
-    }
-
-    // Load template at startup
-    let template = include_str!("../templates/markdown.html");
-
-    // Common markdown rendering function
-    fn render_markdown(content: &str, template: String) -> Html<String> {
-        let mut options = Options::empty();
-        options.insert(Options::ENABLE_STRIKETHROUGH);
-        options.insert(Options::ENABLE_TABLES);
-        options.insert(Options::ENABLE_TASKLISTS);
-
-        let parser = Parser::new_ext(content, options);
-        let mut html_output = String::new();
-        html::push_html(&mut html_output, parser);
-
-        Html(template.replace("{}", &html_output))
-    }
-
-    async fn serve_markdown(path: PathBuf, template: String) -> Html<String> {
-        let content =
-            fs::read_to_string(&path).unwrap_or_else(|_| "# Error\nFile not found.".to_string());
-        render_markdown(&content, template)
-    }
-
-    // Build our application with routes
-    let serve_dir = dir.clone();
-    let markdown_dir = dir;
-    let template = template.to_string();
-
-    let md_dir_index = markdown_dir.clone();
-    let template_index = template.clone();
-
-    let app = Router::new()
-        .route(
-            "/",
-            get(move || serve_markdown(md_dir_index.join("index.md"), template_index)),
-        )
-        .route(
-            "/*path",
-            get(move |path: axum::extract::Path<String>| {
-                let mut path = markdown_dir.join(path.0);
-                let template = template.clone();
-                async move {
-                    if path.to_str().is_some_and(|s| s.ends_with('/')) {
-                        path.push("index.md");
-                    }
-
-                    if path.extension().and_then(|ext| ext.to_str()) == Some("md") {
-                        serve_markdown(path, template).await
-                    } else {
-                        Html("Not found".to_string())
-                    }
-                }
-            }),
-        )
-        .fallback_service(get_service(ServeDir::new(serve_dir)));
-
-    // Run it
-    let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
-    let addr = format!("127.0.0.1:{}", port);
-    let listener = tokio::net::TcpListener::bind(&addr).await?;
-    println!(
-        "
-\x1b[32m
-╔═══════════════════════════════════════╗
-║                                       ║
-║   🚀 Markdown Server is running!      ║
-║   ➜ http://{:<27}║
-║                                       ║
-╚═══════════════════════════════════════╝
-\x1b[0m",
-        addr
-    );
-    axum::serve(listener, app).await?;
-
-    Ok(())
+    let server = Server::new()?;
+    server.run().await
 }

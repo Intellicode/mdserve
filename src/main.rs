@@ -41,13 +41,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Html(template.replace("{}", &html_output))
     }
 
-    // Simplified handlers
-    async fn serve_index(dir: PathBuf, template: String) -> Html<String> {
-        let content = fs::read_to_string(dir.join("index.md"))
-            .unwrap_or_else(|_| "# Welcome\nIndex file not found.".to_string());
-        render_markdown(&content, template)
-    }
-
     async fn serve_markdown(path: PathBuf, template: String) -> Html<String> {
         let content =
             fs::read_to_string(&path).unwrap_or_else(|_| "# Error\nFile not found.".to_string());
@@ -56,11 +49,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Build our application with routes
     let serve_dir = dir.clone();
-    let markdown_dir = dir.clone();
-    let template = template.to_string(); // Convert to owned String
+    let markdown_dir = dir;
+    let template = template.to_string();
+
+    let md_dir_index = markdown_dir.clone();
     let template_index = template.clone();
+
     let app = Router::new()
-        .route("/", get(move || serve_index(dir, template_index)))
+        .route(
+            "/",
+            get(move || serve_markdown(md_dir_index.join("index.md"), template_index)),
+        )
         .route(
             "/*path",
             get(move |path: axum::extract::Path<String>| {

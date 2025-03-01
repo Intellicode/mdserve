@@ -1,15 +1,24 @@
 use crate::handlers::markdown_handler;
+use axum::extract::{Path, State};
+use axum::response::Html;
 use axum::{
     Router,
     routing::{get, get_service},
 };
+use dashmap::DashMap;
+use std::sync::Arc;
 use std::{env, path::PathBuf};
 use tower_http::services::ServeDir;
-
 pub struct Server {
     dir: PathBuf,
     template: String,
     port: String,
+}
+
+struct AppState {
+    cache: DashMap<String, Html<String>>,
+    dir: PathBuf,
+    template: String,
 }
 
 impl Server {
@@ -46,25 +55,17 @@ impl Server {
         self.print_startup_message(&addr);
 
         let md_dir_index = self.dir.clone();
-        let md_dir_path = self.dir.clone();
-        let serve_dir_static = self.dir;
-        let template_index = self.template.clone();
-        let template_path = self.template;
-
+        let cache: DashMap<String, Html<String>> = DashMap::new();
+        let shared_state = Arc::new(AppState {
+            cache,
+            dir: md_dir_index,
+            template: self.template,
+        });
         let app = Router::new()
-            .route(
-                "/",
-                get(move || {
-                    markdown_handler::serve_markdown(md_dir_index.join("index.md"), template_index)
-                }),
-            )
-            .route(
-                "/*path",
-                get(move |path| {
-                    markdown_handler::handle_markdown_path(path, md_dir_path, template_path)
-                }),
-            )
-            .fallback_service(get_service(ServeDir::new(serve_dir_static)));
+            .route("/", get(handler_index))
+            .route("/*path", get(handler_all))
+            .fallback_service(get_service(ServeDir::new(self.dir)))
+            .with_state(shared_state);
 
         let listener = tokio::net::TcpListener::bind(&addr).await?;
         axum::serve(listener, app).await?;
@@ -84,4 +85,34 @@ impl Server {
             addr
         );
     }
+}
+
+async fn handler_index(State(state): State<Arc<AppState>>) -> Html<String> {
+    let file = "index.md";
+    handle(file.to_string(), state).await
+}
+
+async fn handler_all(
+    Path(filename): Path<String>,
+    State(state): State<Arc<AppState>>,
+) -> Html<String> {
+    let file_including_index = if filename.ends_with("/") {
+        format!("{}/index.md", filename)
+    } else {
+        filename
+    };
+    handle(file_including_index, state).await
+}
+
+// handle
+async fn handle(filename: String, state: Arc<AppState>) -> Html<String> {
+    let cache_key = filename.clone();
+    if let Some(cached_html) = state.cache.get(&cache_key) {
+        return cached_html.clone();
+    }
+    let rendered =
+        markdown_handler::serve_markdown(state.dir.join(filename.clone()), state.template.clone())
+            .await;
+    state.cache.insert(cache_key, rendered.clone());
+    rendered
 }

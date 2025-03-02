@@ -1,6 +1,7 @@
 use crate::handlers::markdown_handler;
 use axum::extract::{Path, State};
-use axum::response::Html;
+use axum::http::HeaderMap;
+use axum::response::Response;
 use axum::{
     Router,
     routing::{get, get_service},
@@ -16,7 +17,7 @@ pub struct Server {
 }
 
 struct AppState {
-    cache: DashMap<String, Html<String>>,
+    cache: DashMap<String, Response<String>>,
     dir: PathBuf,
     template: String,
 }
@@ -55,7 +56,7 @@ impl Server {
         self.print_startup_message(&addr);
 
         let md_dir_index = self.dir.clone();
-        let cache: DashMap<String, Html<String>> = DashMap::new();
+        let cache: DashMap<String, Response<String>> = DashMap::new();
         let shared_state = Arc::new(AppState {
             cache,
             dir: md_dir_index,
@@ -87,32 +88,36 @@ impl Server {
     }
 }
 
-async fn handler_index(State(state): State<Arc<AppState>>) -> Html<String> {
+async fn handler_index(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response<String> {
     let file = "index.md";
-    handle(file.to_string(), state).await
+    handle(file.to_string(), state, headers).await
 }
 
 async fn handler_all(
     Path(filename): Path<String>,
     State(state): State<Arc<AppState>>,
-) -> Html<String> {
+    headers: HeaderMap,
+) -> Response<String> {
     let file_including_index = if filename.ends_with("/") {
         format!("{}/index.md", filename)
     } else {
         filename
     };
-    handle(file_including_index, state).await
+    handle(file_including_index, state, headers).await
 }
 
 // handle
-async fn handle(filename: String, state: Arc<AppState>) -> Html<String> {
+async fn handle(filename: String, state: Arc<AppState>, headers: HeaderMap) -> Response<String> {
     let cache_key = filename.clone();
     if let Some(cached_html) = state.cache.get(&cache_key) {
         return cached_html.clone();
     }
-    let rendered =
-        markdown_handler::serve_markdown(state.dir.join(filename.clone()), state.template.clone())
-            .await;
+    let rendered = markdown_handler::serve_markdown(
+        state.dir.join(filename.clone()),
+        state.template.clone(),
+        headers,
+    )
+    .await;
     state.cache.insert(cache_key, rendered.clone());
     rendered
 }

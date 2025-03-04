@@ -1,15 +1,20 @@
 use crate::handlers::markdown_handler;
+use axum::body::Body;
 use axum::extract::{Path, State};
-use axum::http::HeaderMap;
-use axum::response::Response;
+use axum::http::{HeaderMap, Request};
+use axum::middleware::Next;
+use axum::response::{IntoResponse, Response};
 use axum::{
     Router,
     routing::{get, get_service},
 };
+use chrono::Utc;
 use dashmap::DashMap;
+use serde_json::json;
 use std::sync::Arc;
-use std::{env, path::PathBuf};
+use std::{env, path::PathBuf, time::Instant};
 use tower_http::services::ServeDir;
+
 pub struct Server {
     dir: PathBuf,
     template: String,
@@ -66,7 +71,8 @@ impl Server {
             .route("/", get(handler_index))
             .route("/*path", get(handler_all))
             .fallback_service(get_service(ServeDir::new(self.dir)))
-            .with_state(shared_state);
+            .with_state(shared_state)
+            .layer(axum::middleware::from_fn(request_logger));
 
         let listener = tokio::net::TcpListener::bind(&addr).await?;
         axum::serve(listener, app).await?;
@@ -120,4 +126,24 @@ async fn handle(filename: String, state: Arc<AppState>, headers: HeaderMap) -> R
     .await;
     state.cache.insert(cache_key, rendered.clone());
     rendered
+}
+
+async fn request_logger(req: Request<Body>, next: Next) -> impl IntoResponse {
+    let start = Instant::now();
+    let method = req.method().clone();
+    let uri = req.uri().clone();
+    let timestamp = Utc::now().to_rfc3339();
+
+    let response = next.run(req).await;
+
+    let duration = start.elapsed();
+    let log_entry = json!({
+        "timestamp": timestamp,
+        "method": method.to_string(),
+        "uri": uri.to_string(),
+        "duration_ms": duration.as_millis()
+    });
+    println!("{}", log_entry);
+
+    response
 }

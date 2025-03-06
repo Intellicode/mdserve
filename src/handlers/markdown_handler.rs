@@ -3,7 +3,7 @@ use crate::utils::etag::generate_etag;
 use axum::http::{HeaderMap, Response, StatusCode, header};
 use std::path::PathBuf;
 
-pub fn serve_markdown(path: &PathBuf, template: String, headers: HeaderMap) -> Response<String> {
+pub fn serve_markdown(path: &PathBuf, template: &str, headers: &HeaderMap) -> Response<String> {
     // Generate ETag for the file
     let etag = generate_etag(path);
 
@@ -28,7 +28,7 @@ pub fn serve_markdown(path: &PathBuf, template: String, headers: HeaderMap) -> R
     }
 
     // Read and render content
-    let content = std::fs::read_to_string(&path)
+    let content = std::fs::read_to_string(path)
         .unwrap_or_else(|_| "# Error\nFailed to read file.".to_string());
     let html = render_markdown(&content, template);
 

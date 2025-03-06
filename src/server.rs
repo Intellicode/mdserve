@@ -28,19 +28,19 @@ struct AppState {
 }
 
 impl Server {
-    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
-        let dir = Self::get_directory()?;
+    pub fn new() -> Self {
+        let dir = Self::get_directory();
         let template = include_str!("../templates/markdown.html").to_string();
         let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
 
-        Ok(Self {
+        Self {
             dir,
             template,
             port,
-        })
+        }
     }
 
-    fn get_directory() -> Result<PathBuf, Box<dyn std::error::Error>> {
+    fn get_directory() -> PathBuf {
         let args: Vec<String> = env::args().collect();
         if args.len() != 2 {
             eprintln!("Usage: {} <directory>", args[0]);
@@ -53,7 +53,7 @@ impl Server {
             std::process::exit(1);
         }
 
-        Ok(dir)
+        dir
     }
 
     pub async fn run(self) -> Result<(), Box<dyn std::error::Error>> {
@@ -97,7 +97,7 @@ impl Server {
 
 async fn handler_index(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response<String> {
     let file = "index.md";
-    handle(file, &state, headers)
+    handle(file, &state, &headers)
 }
 
 async fn handler_all(
@@ -110,20 +110,17 @@ async fn handler_all(
     } else {
         filename
     };
-    handle(&file_including_index, &state, headers)
+    handle(&file_including_index, &state, &headers)
 }
 
 // handle
-fn handle(filename: &str, state: &Arc<AppState>, headers: HeaderMap) -> Response<String> {
+fn handle(filename: &str, state: &Arc<AppState>, headers: &HeaderMap) -> Response<String> {
     let cache_key = filename;
     if let Some(cached_html) = state.cache.get(cache_key) {
         return cached_html.clone();
     }
-    let rendered = markdown_handler::serve_markdown(
-        &state.dir.join(filename),
-        state.template.clone(),
-        headers,
-    );
+    let rendered =
+        markdown_handler::serve_markdown(&state.dir.join(filename), &state.template, headers);
     state.cache.insert(cache_key.to_string(), rendered.clone());
     rendered
 }

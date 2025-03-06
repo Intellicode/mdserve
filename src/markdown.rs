@@ -1,7 +1,7 @@
 use axum::response::Html;
 use pulldown_cmark::{Options, Parser, html};
 
-pub fn render_markdown(content: &str, template: String) -> Html<String> {
+pub fn render_markdown(content: &str, template: &str) -> Html<String> {
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
     options.insert(Options::ENABLE_TABLES);

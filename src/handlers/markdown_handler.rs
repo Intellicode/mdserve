@@ -3,13 +3,9 @@ use crate::utils::etag::generate_etag;
 use axum::http::{HeaderMap, Response, StatusCode, header};
 use std::path::PathBuf;
 
-pub async fn serve_markdown(
-    path: PathBuf,
-    template: String,
-    headers: HeaderMap,
-) -> Response<String> {
+pub fn serve_markdown(path: &PathBuf, template: String, headers: HeaderMap) -> Response<String> {
     // Generate ETag for the file
-    let etag = generate_etag(&path);
+    let etag = generate_etag(path);
 
     // Check if the file exists and handle not found case
     if !path.exists() {

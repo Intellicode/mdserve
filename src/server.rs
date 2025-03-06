@@ -75,8 +75,10 @@ impl Server {
             .layer(axum::middleware::from_fn(request_logger));
 
         let listener = tokio::net::TcpListener::bind(&addr).await?;
-        axum::serve(listener, app).await?;
-        Ok(())
+        axum::serve(listener, app).await.map_err(|e| {
+            eprintln!("Server error: {e}");
+            Box::new(e) as Box<dyn std::error::Error>
+        })
     }
 
     fn print_startup_message(&self, addr: &str) {
@@ -85,18 +87,17 @@ impl Server {
 ╔═══════════════════════════════════════╗
 ║                                       ║
 ║   🚀 Markdown Server is running!      ║
-║   ➜ http://{:<27}║
+║   ➜ http://{addr:<27}║
 ║                                       ║
 ╚═══════════════════════════════════════╝
-\x1b[0m",
-            addr
+\x1b[0m"
         );
     }
 }
 
 async fn handler_index(State(state): State<Arc<AppState>>, headers: HeaderMap) -> Response<String> {
     let file = "index.md";
-    handle(file.to_string(), state, headers).await
+    handle(file, &state, headers)
 }
 
 async fn handler_all(
@@ -104,27 +105,26 @@ async fn handler_all(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Response<String> {
-    let file_including_index = if filename.ends_with("/") {
-        format!("{}/index.md", filename)
+    let file_including_index = if filename.ends_with('/') {
+        format!("{filename}/index.md")
     } else {
         filename
     };
-    handle(file_including_index, state, headers).await
+    handle(&file_including_index, &state, headers)
 }
 
 // handle
-async fn handle(filename: String, state: Arc<AppState>, headers: HeaderMap) -> Response<String> {
-    let cache_key = filename.clone();
-    if let Some(cached_html) = state.cache.get(&cache_key) {
+fn handle(filename: &str, state: &Arc<AppState>, headers: HeaderMap) -> Response<String> {
+    let cache_key = filename;
+    if let Some(cached_html) = state.cache.get(cache_key) {
         return cached_html.clone();
     }
     let rendered = markdown_handler::serve_markdown(
-        state.dir.join(filename.clone()),
+        &state.dir.join(filename),
         state.template.clone(),
         headers,
-    )
-    .await;
-    state.cache.insert(cache_key, rendered.clone());
+    );
+    state.cache.insert(cache_key.to_string(), rendered.clone());
     rendered
 }
 
@@ -141,9 +141,10 @@ async fn request_logger(req: Request<Body>, next: Next) -> impl IntoResponse {
         "timestamp": timestamp,
         "method": method.to_string(),
         "uri": uri.to_string(),
-        "duration_ms": duration.as_millis()
+        "duration_ms": duration.as_millis(),
+        "status": response.status().as_u16()
     });
-    println!("{}", log_entry);
+    println!("{log_entry}");
 
     response
 }

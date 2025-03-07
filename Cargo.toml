@@ -16,3 +16,5 @@ serde = { version = "1.0", features = ["derive"]  }
 serde_json = { version="1.0", features = ["preserve_order"] }
 chrono = "0.4"
 walkdir = "2.3"
+tracing = "0.1"
+tracing-subscriber = "0.3"

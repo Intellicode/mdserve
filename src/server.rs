@@ -14,6 +14,7 @@ use serde_json::json;
 use std::sync::Arc;
 use std::{env, path::PathBuf, time::Instant};
 use tower_http::services::ServeDir;
+use tracing::{error, info};
 
 pub struct Server {
     dir: PathBuf,
@@ -43,13 +44,13 @@ impl Server {
     fn get_directory() -> PathBuf {
         let args: Vec<String> = env::args().collect();
         if args.len() != 2 {
-            eprintln!("Usage: {} <directory>", args[0]);
+            error!("Usage: {} <directory>", args[0]);
             std::process::exit(1);
         }
 
         let dir = PathBuf::from(&args[1]);
         if !dir.is_dir() {
-            eprintln!("Error: {} is not a directory", args[1]);
+            error!("Error: {} is not a directory", args[1]);
             std::process::exit(1);
         }
 
@@ -76,13 +77,13 @@ impl Server {
 
         let listener = tokio::net::TcpListener::bind(&addr).await?;
         axum::serve(listener, app).await.map_err(|e| {
-            eprintln!("Server error: {e}");
+            error!("Server error: {e}");
             Box::new(e) as Box<dyn std::error::Error>
         })
     }
 
     fn print_startup_message(&self, addr: &str) {
-        println!(
+        info!(
             "\x1b[32m
 ╔═══════════════════════════════════════╗
 ║                                       ║
@@ -129,19 +130,17 @@ async fn request_logger(req: Request<Body>, next: Next) -> impl IntoResponse {
     let start = Instant::now();
     let method = req.method().clone();
     let uri = req.uri().clone();
-    let timestamp = Utc::now().to_rfc3339();
 
     let response = next.run(req).await;
 
     let duration = start.elapsed();
     let log_entry = json!({
-        "timestamp": timestamp,
         "method": method.to_string(),
         "uri": uri.to_string(),
         "duration_ms": duration.as_millis(),
         "status": response.status().as_u16()
     });
-    println!("{log_entry}");
+    info!("{log_entry}");
 
     response
 }

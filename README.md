@@ -1,10 +1,11 @@
-<p align="center">
-<h1>🚀 Markdown Server</h1>
+<div align="center">
+  <h1>🚀 Markdown Server</h1>
+  <p>A fast and lightweight server that serves markdown files as HTML pages with beautiful typography.</p>
+</div>
 
-A fast and lightweight server that renders markdown files with beautiful typography.
+## Example
 
-<img src="docs/screenshot.png" alt="Markdown Server Screenshot" />
-</p>
+![output](docs/screenshot.png){ width=600 height=400 }
 
 ## Features
 

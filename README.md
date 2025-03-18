@@ -5,7 +5,7 @@
 
 ## Example
 
-![output](docs/screenshot.png){ width=600 height=400 }
+<img src="docs/screenshot.png" alt="Markdown Server Screenshot" width="300" />
 
 ## Features
 

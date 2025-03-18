@@ -5,7 +5,9 @@
 
 ## Example
 
-<img src="docs/screenshot.png" alt="Markdown Server Screenshot" width="300" />
+<div align="center">
+<img src="docs/screenshot.png" alt="Markdown Server Screenshot" width="500" />
+</div>
 
 ## Features
 

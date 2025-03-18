@@ -1,6 +1,10 @@
-# 🚀 Markdown Server
+<p align="center">
+<h1>🚀 Markdown Server</h1>
 
 A fast and lightweight server that renders markdown files with beautiful typography.
+
+<img src="docs/screenshot.png" alt="Markdown Server Screenshot" />
+</p>
 
 ## Features
 

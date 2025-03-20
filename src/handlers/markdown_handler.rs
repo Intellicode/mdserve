@@ -2,10 +2,10 @@ use crate::markdown::render_markdown;
 use crate::utils::etag::generate_etag;
 use axum::http::{HeaderMap, Response, StatusCode, header};
 use std::fs;
-use std::path::PathBuf;
+use std::path::Path;
 use walkdir::WalkDir;
 
-pub fn serve_markdown(path: &PathBuf, template: &str, headers: &HeaderMap) -> Response<String> {
+pub fn serve_markdown(path: &Path, template: &str, headers: &HeaderMap) -> Response<String> {
     // Generate ETag for the file
     let etag = generate_etag(path);
 
@@ -45,8 +45,8 @@ pub fn serve_markdown(path: &PathBuf, template: &str, headers: &HeaderMap) -> Re
 }
 
 pub fn export_markdown_to_html(
-    input_dir: &PathBuf,
-    output_dir: &PathBuf,
+    input_dir: &Path,
+    output_dir: &Path,
     template: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Create output directory if it doesn't exist

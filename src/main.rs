@@ -7,7 +7,7 @@ use crate::handlers::markdown_handler::export_markdown_to_html;
 use clap::{Parser, Subcommand};
 use server::Server;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tracing::{error, info};
 
 #[derive(Parser)]
@@ -135,7 +135,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 start_server(directory).await?;
             } else {
                 // No arguments provided - show help
-                let _ = Cli::parse_from(&["mdserve", "--help"]);
+                let _ = Cli::parse_from(["mdserve", "--help"]);
             }
         }
     }
@@ -143,8 +143,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-async fn start_server(directory: &PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-    let server = Server::new_with_directory(directory.clone());
+async fn start_server(directory: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    let server = Server::new_with_directory(directory.to_path_buf());
     if let Err(e) = server.run().await {
         error!("Server error: {}", e);
     }

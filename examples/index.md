@@ -1,4 +1,4 @@
-# Welcome to My Documentation
+# Welcome to my documentation
 
 ## Table of Contents
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.0](https://github.com/Intellicode/mdserve/compare/v0.1.0...v0.2.0) (2025-03-20)
+
+
+### Features
+
+* include release asset ([7f69b16](https://github.com/Intellicode/mdserve/commit/7f69b165fc45c4d4eee78048ec9c82874b60ab5b))
+
+
+### Bug Fixes
+
+* only release on tag ([d1adab7](https://github.com/Intellicode/mdserve/commit/d1adab709e9fef9b5fc659ee23865a23efb9761e))
+* only release on tag create ([fbeb550](https://github.com/Intellicode/mdserve/commit/fbeb55063c65af7e6c79ffe1a2de954e93f74041))
+* remove artifact publishing for now ([3dee12e](https://github.com/Intellicode/mdserve/commit/3dee12ed10530d25e53f073891afae2f37a51ee6))
+* remove artifact publishing for now ([0df4c66](https://github.com/Intellicode/mdserve/commit/0df4c66aeed64ce03eb3026b98279ebe80db12ff))
+
 ## 0.1.0 (2025-03-20)
 
 

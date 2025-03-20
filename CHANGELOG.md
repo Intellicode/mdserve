@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/Intellicode/mdserve/compare/v0.3.1...v0.4.0) (2025-03-20)
+
+
+### Features
+
+* multi arch build ([dbb21c9](https://github.com/Intellicode/mdserve/commit/dbb21c9423cd0d92a202046951bf200cd1460aee))
+
 ## [0.3.1](https://github.com/Intellicode/mdserve/compare/v0.3.0...v0.3.1) (2025-03-20)
 
 

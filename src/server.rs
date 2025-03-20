@@ -28,32 +28,14 @@ struct AppState {
 }
 
 impl Server {
-    pub fn new() -> Self {
-        let dir = Self::get_directory();
+    pub fn new_with_directory(dir: PathBuf) -> Self {
         let template = include_str!("../templates/markdown.html").to_string();
         let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
-
         Self {
             dir,
             template,
             port,
         }
-    }
-
-    fn get_directory() -> PathBuf {
-        let args: Vec<String> = env::args().collect();
-        if args.len() != 2 {
-            error!("Usage: {} <directory>", args[0]);
-            std::process::exit(1);
-        }
-
-        let dir = PathBuf::from(&args[1]);
-        if !dir.is_dir() {
-            error!("Error: {} is not a directory", args[1]);
-            std::process::exit(1);
-        }
-
-        dir
     }
 
     pub async fn run(self) -> Result<(), Box<dyn std::error::Error>> {

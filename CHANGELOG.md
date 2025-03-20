@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/Intellicode/mdserve/compare/v0.2.1...v0.3.0) (2025-03-20)
+
+
+### Features
+
+* update text ([a607007](https://github.com/Intellicode/mdserve/commit/a60700798d00f28e47b511e400af0d939e21f298))
+
 ## [0.2.1](https://github.com/Intellicode/mdserve/compare/v0.2.0...v0.2.1) (2025-03-20)
 
 

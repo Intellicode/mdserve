@@ -1,0 +1,20 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "rust",
+      "draft": false,
+      "prerelease": false,
+      "include-component-in-tag": false,
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "Cargo.toml",
+          "jsonpath": "$.package.version"
+        }
+      ]
+    }
+  }
+}

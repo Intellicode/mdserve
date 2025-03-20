@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/Intellicode/mdserve/compare/v0.2.0...v0.2.1) (2025-03-20)
+
+
+### Bug Fixes
+
+* tag pattern ([d495b9a](https://github.com/Intellicode/mdserve/commit/d495b9a24739be3fc987174fff285fbfe700ccb9))
+
 ## [0.2.0](https://github.com/Intellicode/mdserve/compare/v0.1.0...v0.2.0) (2025-03-20)
 
 

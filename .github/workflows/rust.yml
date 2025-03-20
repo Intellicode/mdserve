@@ -1,10 +1,9 @@
 name: Rust CI
 
 on:
-  tag:
-    types: [created]
   push:
     branches: ["main"]
+    tags: ["v.*"]
   pull_request:
     branches: ["main"]
 

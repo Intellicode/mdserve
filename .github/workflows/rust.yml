@@ -45,4 +45,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
+          token: ${{ secrets.RP_TOKEN }}
           files: target/release/mdserve

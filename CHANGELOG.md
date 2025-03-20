@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/Intellicode/mdserve/compare/v0.3.0...v0.3.1) (2025-03-20)
+
+
+### Bug Fixes
+
+* move token to the right file ([c891a73](https://github.com/Intellicode/mdserve/commit/c891a73506c318ab90bbb257eae94705935b220b))
+
 ## [0.3.0](https://github.com/Intellicode/mdserve/compare/v0.2.1...v0.3.0) (2025-03-20)
 
 

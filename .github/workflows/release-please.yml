@@ -8,7 +8,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  id-token: write
 
 jobs:
   release-please:
@@ -17,3 +16,4 @@ jobs:
       - uses: googleapis/release-please-action@v4
         with:
           release-type: rust
+          token: ${{ secrets.RP_TOKEN }}

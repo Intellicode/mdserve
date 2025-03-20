@@ -39,3 +39,8 @@ jobs:
 
       - name: Run clippy
         run: cargo clippy -- -D warnings
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/release/mdserve

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/Intellicode/mdserve/compare/v0.4.0...v0.4.1) (2025-03-21)
+
+
+### Bug Fixes
+
+* run if out doesn't exist ([493ed5b](https://github.com/Intellicode/mdserve/commit/493ed5b0ed4aa35fbb39846006b55deaad7514a1))
+
 ## [0.4.0](https://github.com/Intellicode/mdserve/compare/v0.3.1...v0.4.0) (2025-03-20)
 
 

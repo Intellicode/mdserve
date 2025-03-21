@@ -53,10 +53,10 @@ jobs:
             target: x86_64-unknown-linux-gnu
             binary_name: mdserve
             asset_name: mdserve-linux-amd64
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            binary_name: mdserve
-            asset_name: mdserve-linux-arm64
+          # - os: ubuntu-latest
+          #   target: aarch64-unknown-linux-gnu
+          #   binary_name: mdserve
+          #   asset_name: mdserve-linux-arm64
           - os: macos-latest
             target: x86_64-apple-darwin
             binary_name: mdserve
@@ -65,10 +65,10 @@ jobs:
             target: aarch64-apple-darwin
             binary_name: mdserve
             asset_name: mdserve-darwin-arm64
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            binary_name: mdserve.exe
-            asset_name: mdserve-windows-amd64.exe
+          # - os: windows-latest
+          #   target: x86_64-pc-windows-msvc
+          #   binary_name: mdserve.exe
+          #   asset_name: mdserve-windows-amd64.exe
 
     steps:
       - uses: actions/checkout@v4
@@ -99,6 +99,5 @@ jobs:
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ${{ matrix.asset_name }}

@@ -79,14 +79,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return Ok(());
             }
 
-            if !output_dir.exists() || !output_dir.is_dir() {
-                error!(
-                    "Output directory does not exist or is not a directory: {}",
-                    output_dir.display()
-                );
-                return Ok(());
-            }
-
             // Get template content - either from file or use the default
             let template_content = match template {
                 Some(path) => {

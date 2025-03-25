@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markdown Viewer</title>
+    <title>{{title}}</title>
+    <meta name="description" content="{{description}}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;1,400;1,600&display=swap"
@@ -155,6 +156,30 @@
             margin-right: 0.5em;
         }
 
+        .frontmatter-info {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .frontmatter-info .date {
+            font-style: italic;
+        }
+
+        .frontmatter-info .description {
+            margin-top: 0.5rem;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.2em 0.6em;
+            margin: 0.1em;
+            background: var(--code-bg);
+            border-radius: 2px;
+            font-size: 0.8em;
+            border: 1px solid var(--border-color);
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 1rem;
@@ -178,7 +203,7 @@
 <body>
     <header
         style="text-align: center; margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color);">
-        <h1 style="margin: 0 0 1rem 0;">Wiki</h1>
+        <h1 style="margin: 0 0 1rem 0;">{{header_title}}</h1>
         <nav style="display: flex; justify-content: center; gap: 2rem;">
             <a href="/" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">Home</a>
             <a href="/docs"
@@ -186,7 +211,11 @@
             <a href="/about" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">About</a>
         </nav>
     </header>
-    {}
+
+    {{frontmatter_block}}
+
+    {{content}}
+
     <footer
         style="text-align: center; margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); color: #666;">
         <p style="margin: 0;">

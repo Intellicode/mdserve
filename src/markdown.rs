@@ -1,3 +1,4 @@
+use crate::config::{Config, NavLink};
 use axum::response::Html;
 use pulldown_cmark::{Options, Parser, html};
 use serde::Deserialize;
@@ -21,7 +22,6 @@ pub fn extract_frontmatter(content: &str) -> (Option<Frontmatter>, &str) {
             let yaml_end = end_index + 3;
             let frontmatter_str = &content[3..yaml_end];
             let remaining_content = &content[(yaml_end + 4)..];
-
             match serde_yaml::from_str::<Frontmatter>(frontmatter_str) {
                 Ok(frontmatter) => return (Some(frontmatter), remaining_content),
                 Err(_) => return (None, content),
@@ -30,18 +30,16 @@ pub fn extract_frontmatter(content: &str) -> (Option<Frontmatter>, &str) {
             let yaml_end = end_index + 5;
             let frontmatter_str = &content[3..yaml_end];
             let remaining_content = &content[(yaml_end + 6)..];
-
             match serde_yaml::from_str::<Frontmatter>(frontmatter_str) {
                 Ok(frontmatter) => return (Some(frontmatter), remaining_content),
                 Err(_) => return (None, content),
             }
         }
     }
-
     (None, content)
 }
 
-pub fn render_markdown(content: &str, template: &str) -> Html<String> {
+pub fn render_markdown(content: &str, template: &str, config: Option<&Config>) -> Html<String> {
     // Extract frontmatter if present
     let (frontmatter, content_without_frontmatter) = extract_frontmatter(content);
 
@@ -121,6 +119,59 @@ pub fn render_markdown(content: &str, template: &str) -> Html<String> {
         final_html = final_html.replace("{{header_title}}", default_header_title);
         final_html = final_html.replace("{{description}}", default_description);
         final_html = final_html.replace("{{frontmatter_block}}", "");
+    }
+
+    // Add config-based customizations
+    if let Some(cfg) = config {
+        // Add custom CSS if provided
+        if let Some(custom_css) = &cfg.custom_css {
+            final_html = final_html.replace("{{custom_css}}", custom_css);
+        } else {
+            final_html = final_html.replace("{{custom_css}}", "");
+        }
+
+        // Add custom header if provided
+        if let Some(header) = &cfg.header {
+            final_html = final_html.replace("{{custom_header}}", header);
+        } else {
+            final_html = final_html.replace("{{custom_header}}", "");
+        }
+
+        // Add custom footer if provided
+        if let Some(footer) = &cfg.footer {
+            final_html = final_html.replace("{{custom_footer}}", footer);
+        } else {
+            final_html = final_html.replace("{{custom_footer}}", "");
+        }
+
+        // Build navigation links
+        let mut nav_links = String::new();
+        if let Some(navigation) = &cfg.navigation {
+            for link in navigation {
+                nav_links.push_str(&format!(
+                    "<a href=\"{}\" style=\"color: var(--link-color); text-decoration: none; font-size: 1.1rem;\">{}</a>",
+                    link.url, link.text
+                ));
+            }
+        } else {
+            // Default navigation links
+            nav_links = r#"<a href="/" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">Home</a>
+            <a href="/docs" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">Documentation</a>
+            <a href="/about" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">About</a>"#.to_string();
+        }
+        final_html = final_html.replace("{{navigation_links}}", &nav_links);
+    } else {
+        // No config, use defaults
+        final_html = final_html.replace("{{custom_css}}", "");
+        final_html = final_html.replace("{{custom_header}}", "");
+        final_html = final_html.replace("{{custom_footer}}", "");
+
+        // Default navigation links
+        let default_nav = r#"<a href="/" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">Home</a>
+        <a href="/docs" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">Documentation</a>
+        <a href="/about" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">About</a>"#;
+
+        final_html = final_html.replace("{{navigation_links}}", default_nav);
     }
 
     Html(final_html)

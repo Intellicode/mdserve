@@ -1,3 +1,4 @@
+use crate::config::Config;
 use crate::handlers::markdown_handler;
 use axum::body::Body;
 use axum::extract::{Path, State};
@@ -11,7 +12,11 @@ use axum::{
 use dashmap::DashMap;
 use serde_json::json;
 use std::sync::Arc;
-use std::{env, path::PathBuf, time::Instant};
+use std::{
+    env,
+    path::{Path as StdPath, PathBuf},
+    time::Instant,
+};
 use tower_http::services::ServeDir;
 use tracing::{error, info};
 
@@ -19,12 +24,14 @@ pub struct Server {
     dir: PathBuf,
     template: String,
     port: String,
+    config: Option<Config>,
 }
 
 struct AppState {
     cache: DashMap<String, Response<String>>,
     dir: PathBuf,
     template: String,
+    config: Option<Config>,
 }
 
 impl Server {
@@ -35,7 +42,15 @@ impl Server {
             dir,
             template,
             port,
+            config: None,
         }
+    }
+
+    pub fn with_config(mut self, config_path: Option<PathBuf>) -> Self {
+        if let Some(path) = config_path {
+            self.config = Some(Config::from_file(&path));
+        }
+        self
     }
 
     pub async fn run(self) -> Result<(), Box<dyn std::error::Error>> {
@@ -44,11 +59,14 @@ impl Server {
 
         let md_dir_index = self.dir.clone();
         let cache: DashMap<String, Response<String>> = DashMap::new();
+
         let shared_state = Arc::new(AppState {
             cache,
             dir: md_dir_index,
             template: self.template,
+            config: self.config,
         });
+
         let app = Router::new()
             .route("/", get(handler_index))
             .route("/*path", get(handler_all))
@@ -101,8 +119,14 @@ fn handle(filename: &str, state: &Arc<AppState>, headers: &HeaderMap) -> Respons
     if let Some(cached_html) = state.cache.get(cache_key) {
         return cached_html.clone();
     }
-    let rendered =
-        markdown_handler::serve_markdown(&state.dir.join(filename), &state.template, headers);
+
+    let rendered = markdown_handler::serve_markdown(
+        &state.dir.join(filename),
+        &state.template,
+        headers,
+        state.config.as_ref(),
+    );
+
     state.cache.insert(cache_key.to_string(), rendered.clone());
     rendered
 }
@@ -111,17 +135,16 @@ async fn request_logger(req: Request<Body>, next: Next) -> impl IntoResponse {
     let start = Instant::now();
     let method = req.method().clone();
     let uri = req.uri().clone();
-
     let response = next.run(req).await;
-
     let duration = start.elapsed();
+
     let log_entry = json!({
         "method": method.to_string(),
         "uri": uri.to_string(),
         "duration_ms": duration.as_millis(),
         "status": response.status().as_u16()
     });
-    info!("{log_entry}");
 
+    info!("{log_entry}");
     response
 }

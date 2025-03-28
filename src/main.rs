@@ -1,8 +1,10 @@
+mod config;
 mod handlers;
 mod markdown;
 mod server;
 mod utils;
 
+use crate::config::Config;
 use crate::handlers::markdown_handler::export_markdown_to_html;
 use clap::{Parser, Subcommand};
 use server::Server;
@@ -28,6 +30,10 @@ enum Commands {
     Serve {
         /// Directory containing markdown files to serve
         directory: PathBuf,
+
+        /// Optional YAML config file path
+        #[arg(long)]
+        config: Option<PathBuf>,
     },
 
     /// Export markdown files to HTML
@@ -41,6 +47,10 @@ enum Commands {
         /// Optional custom HTML template file
         #[arg(long)]
         template: Option<PathBuf>,
+
+        /// Optional YAML config file path
+        #[arg(long)]
+        config: Option<PathBuf>,
     },
 }
 
@@ -53,7 +63,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Handle commands
     match &cli.command {
-        Some(Commands::Serve { directory }) => {
+        Some(Commands::Serve { directory, config }) => {
             // Validate directory
             if !directory.exists() || !directory.is_dir() {
                 error!(
@@ -63,12 +73,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return Ok(());
             }
 
-            start_server(directory).await?;
+            start_server(directory, config.clone()).await?;
         }
         Some(Commands::Export {
             input_dir,
             output_dir,
             template,
+            config,
         }) => {
             // Validate directories
             if !input_dir.exists() || !input_dir.is_dir() {
@@ -106,7 +117,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             };
 
-            export_markdown_to_html(input_dir, output_dir, &template_content)?;
+            // Load config if provided
+            let config_obj = config.as_ref().map(|path| Config::from_file(path));
+
+            export_markdown_to_html(
+                input_dir,
+                output_dir,
+                &template_content,
+                config_obj.as_ref(),
+            )?;
             info!(
                 "Exported markdown files from {} to {}",
                 input_dir.display(),
@@ -124,7 +143,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     return Ok(());
                 }
 
-                start_server(directory).await?;
+                start_server(directory, None).await?;
             } else {
                 // No arguments provided - show help
                 let _ = Cli::parse_from(["mdserve", "--help"]);
@@ -135,8 +154,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-async fn start_server(directory: &Path) -> Result<(), Box<dyn std::error::Error>> {
-    let server = Server::new_with_directory(directory.to_path_buf());
+async fn start_server(
+    directory: &Path,
+    config_path: Option<PathBuf>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let server = Server::new_with_directory(directory.to_path_buf()).with_config(config_path);
+
     if let Err(e) = server.run().await {
         error!("Server error: {}", e);
     }

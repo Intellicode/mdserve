@@ -1,3 +1,4 @@
+use crate::config::Config;
 use crate::markdown::render_markdown;
 use crate::utils::etag::generate_etag;
 use axum::http::{HeaderMap, Response, StatusCode, header};
@@ -5,14 +6,19 @@ use std::fs;
 use std::path::Path;
 use walkdir::WalkDir;
 
-pub fn serve_markdown(path: &Path, template: &str, headers: &HeaderMap) -> Response<String> {
+pub fn serve_markdown(
+    path: &Path,
+    template: &str,
+    headers: &HeaderMap,
+    config: Option<&Config>,
+) -> Response<String> {
     // Generate ETag for the file
     let etag = generate_etag(path);
 
     // Check if the file exists and handle not found case
     if !path.exists() {
         let content = "# Error\nFile not found.";
-        let html = render_markdown(content, template);
+        let html = render_markdown(content, template, config);
         return Response::builder()
             .status(StatusCode::NOT_FOUND)
             .body(html.0)
@@ -32,7 +38,7 @@ pub fn serve_markdown(path: &Path, template: &str, headers: &HeaderMap) -> Respo
     // Read and render content
     let content = std::fs::read_to_string(path)
         .unwrap_or_else(|_| "# Error\nFailed to read file.".to_string());
-    let html = render_markdown(&content, template);
+    let html = render_markdown(&content, template, config);
 
     // Build response with ETag
     let mut builder = Response::builder().header(header::CONTENT_TYPE, "text/html");
@@ -48,6 +54,7 @@ pub fn export_markdown_to_html(
     input_dir: &Path,
     output_dir: &Path,
     template: &str,
+    config: Option<&Config>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Create output directory if it doesn't exist
     if !output_dir.exists() {
@@ -61,7 +68,7 @@ pub fn export_markdown_to_html(
         if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("md") {
             // Read markdown content
             let content = fs::read_to_string(&path)?;
-            let html = render_markdown(&content, template);
+            let html = render_markdown(&content, template, config);
 
             // Determine output file path
             let relative_path = path.strip_prefix(input_dir)?;

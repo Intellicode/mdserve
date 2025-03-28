@@ -16,6 +16,7 @@
 - 📁 Serves static files alongside markdown
 - 📱 Responsive design
 - 🔍 Automatic index.md rendering
+- 🛠️ Customizable with YAML configuration
 - ⚡ Built with Rust for maximum performance
 
 ## Installation
@@ -42,16 +43,31 @@ cargo run -- /path/to/docs
 
 # Custom port
 PORT=8080 cargo run -- /path/to/docs
+
+# With configuration file
+cargo run -- serve --directory /path/to/docs --config /path/to/config.yaml
+```
+
+### Exporting Static HTML
+
+```bash
+# Export markdown to HTML
+cargo run -- export --input-dir /path/to/docs --output-dir /path/to/html
+
+# With custom template and configuration
+cargo run -- export --input-dir /path/to/docs --output-dir /path/to/html --template /path/to/template.html --config /path/to/config.yaml
 ```
 
 ### Directory Structure
 
+```
 docs/
 ├── index.md # Served at /
 ├── guide.md # Served at /guide
 └── tutorials/
-├── index.md # Served at /tutorials/
-└── basics.md # Served at /tutorials/basics
+    ├── index.md # Served at /tutorials/
+    └── basics.md # Served at /tutorials/basics
+```
 
 ### Supported Markdown Features
 
@@ -67,9 +83,46 @@ docs/
 
 ## Configuration
 
-The server can be configured using environment variables:
+### Environment Variables
 
 - `PORT`: Server port (default: 3000)
+
+### YAML Configuration File
+
+You can customize the appearance and content of your markdown site using a YAML configuration file. Here's an example:
+
+```yaml
+# Custom CSS to be injected into the HTML page
+custom_css: |
+  body {
+    max-width: 85ch;  /* Wider content area */
+  }
+
+  h1, h2, h3 {
+    color: #1e5285;  /* Custom heading colors */
+  }
+
+# Custom HTML content for the page header
+header: |
+  <div style="text-align: center; padding: 20px;">
+    <img src="/logo.png" alt="Logo" height="60">
+  </div>
+
+# Custom HTML content for the page footer
+footer: |
+  <div style="text-align: center; margin-top: 30px;">
+    <p>© 2025 Your Organization</p>
+  </div>
+
+# Navigation links to be displayed in the header
+navigation:
+  - text: Home
+    url: /
+  - text: Documentation
+    url: /docs
+  - text: GitHub
+    url: https://github.com/intellicode/mdserve
+```
 
 ## Development
 

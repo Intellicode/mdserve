@@ -1,9 +1,7 @@
-use crate::config::{Config, NavLink};
+use crate::config::Config;
 use axum::response::Html;
 use pulldown_cmark::{Options, Parser, html};
 use serde::Deserialize;
-use serde_json::Value;
-use std::collections::HashMap;
 
 #[derive(Debug, Default, Deserialize)]
 pub struct Frontmatter {
@@ -12,8 +10,6 @@ pub struct Frontmatter {
     pub date: Option<String>,
     pub author: Option<String>,
     pub tags: Option<Vec<String>>,
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
 }
 
 pub fn extract_frontmatter(content: &str) -> (Option<Frontmatter>, &str) {
@@ -81,14 +77,14 @@ pub fn render_markdown(content: &str, template: &str, config: Option<&Config>) -
             frontmatter_html.push_str("<div>");
 
             if let Some(author) = &fm.author {
-                frontmatter_html.push_str(&format!("<span class=\"author\">By {}</span>", author));
+                frontmatter_html.push_str(&format!("<span class=\"author\">By {author}</span>"));
             }
 
             if let Some(date) = &fm.date {
                 if fm.author.is_some() {
                     frontmatter_html.push_str(" on ");
                 }
-                frontmatter_html.push_str(&format!("<span class=\"date\">{}</span>", date));
+                frontmatter_html.push_str(&format!("<span class=\"date\">{date}</span>"));
             }
 
             frontmatter_html.push_str("</div>");
@@ -96,7 +92,7 @@ pub fn render_markdown(content: &str, template: &str, config: Option<&Config>) -
 
         // Add description if available
         if let Some(description) = &fm.description {
-            frontmatter_html.push_str(&format!("<div class=\"description\">{}</div>", description));
+            frontmatter_html.push_str(&format!("<div class=\"description\">{description}</div>"));
         }
 
         // Add tags if available
@@ -104,7 +100,7 @@ pub fn render_markdown(content: &str, template: &str, config: Option<&Config>) -
             if !tags.is_empty() {
                 frontmatter_html.push_str("<div class=\"tags\">");
                 for tag in tags {
-                    frontmatter_html.push_str(&format!("<span class=\"tag\">{}</span> ", tag));
+                    frontmatter_html.push_str(&format!("<span class=\"tag\">{tag}</span> "));
                 }
                 frontmatter_html.push_str("</div>");
             }

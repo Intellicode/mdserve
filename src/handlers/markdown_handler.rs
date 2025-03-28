@@ -62,7 +62,10 @@ pub fn export_markdown_to_html(
     }
 
     // Iterate over markdown files in the input directory and subdirectories
-    for entry in WalkDir::new(input_dir).into_iter().filter_map(|e| e.ok()) {
+    for entry in WalkDir::new(input_dir)
+        .into_iter()
+        .filter_map(std::result::Result::ok)
+    {
         let path = entry.path().to_path_buf();
 
         if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("md") {

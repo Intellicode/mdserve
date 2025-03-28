@@ -12,11 +12,7 @@ use axum::{
 use dashmap::DashMap;
 use serde_json::json;
 use std::sync::Arc;
-use std::{
-    env,
-    path::{Path as StdPath, PathBuf},
-    time::Instant,
-};
+use std::{env, path::PathBuf, time::Instant};
 use tower_http::services::ServeDir;
 use tracing::{error, info};
 

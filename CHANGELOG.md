@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.0](https://github.com/Intellicode/mdserve/compare/v0.4.1...v0.5.0) (2025-03-29)
+
+
+### Features
+
+* add frontmatter support ([1ea9b78](https://github.com/Intellicode/mdserve/commit/1ea9b785d5c746c8a94e71fc175f73d9c4908b2e))
+* support config file ([e666afe](https://github.com/Intellicode/mdserve/commit/e666afe90d4b745a35d1abd6c496dc626afbce14))
+
+
+### Bug Fixes
+
+* syntax issue ([fef645c](https://github.com/Intellicode/mdserve/commit/fef645c7cfa6fd6d4c0021dece40a171926db477))
+
 ## [0.4.1](https://github.com/Intellicode/mdserve/compare/v0.4.0...v0.4.1) (2025-03-21)
 
 

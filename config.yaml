@@ -2,18 +2,7 @@
 
 # Custom CSS to be injected into the HTML page
 custom_css: |
-  body {
-    max-width: 85ch;  /* Wider content area */
-    color: #2a2a2a;   /* Slightly different text color */
-  }
-  
-  h1, h2, h3 {
-    color: #1e5285;  /* Custom heading colors */
-  }
-  
-  code {
-    background-color: #f0f4f8;  /* Lighter code background */
-  }
+ /* custom css */
 
 # Custom HTML content for the page header (optional)
 header: |

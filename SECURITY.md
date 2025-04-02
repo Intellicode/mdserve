@@ -5,7 +5,7 @@
 We take the security of mdserve-examples seriously. If you believe you have found a security vulnerability, please follow these steps:
 
 1. **Do not** disclose the vulnerability publicly
-2. Send details of the vulnerability to [security@example.com](mailto:security@example.com)
+2. Send details of the vulnerability to [upmost.holdout.0j@icloud.com](mailto:upmost.holdout.0j@icloud.com)
 3. Include the following in your report:
    - Description of the vulnerability
    - Steps to reproduce

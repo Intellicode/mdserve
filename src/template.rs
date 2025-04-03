@@ -21,7 +21,6 @@ fn create_template_renderer(template_path: Option<&Path>) -> Result<Tera, String
     let mut tera = match template_path {
         Some(path) if path.exists() && path.is_file() => {
             // Use custom template file
-            let template_dir = path.parent().unwrap_or_else(|| Path::new(""));
             let template_name = path.file_name().unwrap().to_str().unwrap();
             match std::fs::read_to_string(path) {
                 Ok(content) => {

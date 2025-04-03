@@ -2,6 +2,7 @@ mod config;
 mod handlers;
 mod markdown;
 mod server;
+mod template;
 mod utils;
 
 use crate::config::Config;
@@ -87,6 +88,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "Input directory does not exist or is not a directory: {}",
                     input_dir.display()
                 );
+                return Ok(());
+            }
+
+            // Initialize templates
+            if let Err(e) = template::initialize_templates(template.as_deref()) {
+                error!("Failed to initialize templates: {}", e);
                 return Ok(());
             }
 

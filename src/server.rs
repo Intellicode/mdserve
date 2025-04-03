@@ -1,5 +1,6 @@
 use crate::config::Config;
 use crate::handlers::markdown_handler;
+use crate::template;
 use axum::body::Body;
 use axum::extract::{Path, State};
 use axum::http::{HeaderMap, Request};
@@ -43,6 +44,11 @@ impl Server {
     }
 
     pub fn with_config(mut self, config_path: Option<PathBuf>) -> Self {
+        // Initialize templates first
+        if let Err(e) = template::initialize_templates(None) {
+            error!("Failed to initialize templates: {}", e);
+        }
+
         if let Some(path) = config_path {
             self.config = Some(Config::from_file(&path));
         }

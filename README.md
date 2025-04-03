@@ -165,3 +165,40 @@ cargo clippy
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Security
+### Binary Verification
+All official release binaries are signed using [Sigstore](https://sigstore.dev/), which provides keyless signing and verification. This allows you to verify that the binaries were built and signed as part of our official GitHub Actions release process.
+
+#### Verifying a Binary
+
+To verify a binary:
+
+1. Install the Sigstore CLI:
+   ```bash
+   pip install sigstore
+   ```
+
+2. Download the binary and its signature files:
+   ```bash
+   # Example URLs - replace with actual URLs from the GitHub release page
+   BINARY_URL="https://github.com/yourusername/mdserve/releases/download/v1.0.0/mdserve-linux-amd64"
+   SIGSTORE_URL="https://github.com/yourusername/mdserve/releases/download/v1.0.0/mdserve-linux-amd64.sigstore"
+   CERT_URL="https://github.com/yourusername/mdserve/releases/download/v1.0.0/mdserve-linux-amd64.pem"
+   
+   # Download the files
+   curl -L $BINARY_URL -o mdserve
+   curl -L $SIGSTORE_URL -o mdserve.sigstore
+   curl -L $CERT_URL -o mdserve.pem
+   ```
+
+3. Verify the signature:
+   ```bash
+   sigstore verify bundle mdserve \
+     --signature-artifact=mdserve.sigstore \
+     --certificate-artifact=mdserve.pem \
+     --certificate-identity="OWNER@users.noreply.github.com" \
+     --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
+   ```
+
+This verification ensures that the binary was signed by the official GitHub Actions workflow during the release process.

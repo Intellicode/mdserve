@@ -49,23 +49,6 @@ fn create_template_renderer(template_path: Option<&Path>) -> Result<Tera, String
     // Add any custom filters or functions here
     tera.autoescape_on(vec![]); // Disable autoescaping for HTML content
 
-    // Always register default templates to ensure includes work,
-    // but only if they haven't already been loaded from the filesystem
-    if !tera.templates.contains_key("header.html") {
-        tera.add_raw_template("header.html", include_str!("../templates/header.html"))
-            .map_err(|e| format!("Failed to add header template: {}", e))?;
-    }
-
-    if !tera.templates.contains_key("footer.html") {
-        tera.add_raw_template("footer.html", include_str!("../templates/footer.html"))
-            .map_err(|e| format!("Failed to add footer template: {}", e))?;
-    }
-
-    if !tera.templates.contains_key("layout.html") {
-        tera.add_raw_template("layout.html", include_str!("../templates/layout.html"))
-            .map_err(|e| format!("Failed to add layout template: {}", e))?;
-    }
-
     Ok(tera)
 }
 

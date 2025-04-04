@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/Intellicode/mdserve/compare/v0.5.1...v0.5.2) (2025-04-04)
+
+
+### Bug Fixes
+
+* try release artifacts ([36e9460](https://github.com/Intellicode/mdserve/commit/36e94600b7897a1800ccb40693b0dd66ea9f0906))
+
 ## [0.5.1](https://github.com/Intellicode/mdserve/compare/v0.5.0...v0.5.1) (2025-04-04)
 
 

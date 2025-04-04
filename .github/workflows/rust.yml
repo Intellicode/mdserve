@@ -104,7 +104,7 @@ jobs:
         uses: sigstore/gh-action-sigstore-python@v3.0.0
         with:
           inputs: ${{ matrix.asset_name }}
-          upload-signing-artifacts: true
+          # upload-signing-artifacts: true
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2

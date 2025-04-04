@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/Intellicode/mdserve/compare/v0.5.0...v0.5.1) (2025-04-04)
+
+
+### Bug Fixes
+
+* clippy issue ([02d482d](https://github.com/Intellicode/mdserve/commit/02d482db9744d1a1b17b498b05d9ae1ab5da2d34))
+
 ## [0.5.0](https://github.com/Intellicode/mdserve/compare/v0.4.1...v0.5.0) (2025-03-29)
 
 

@@ -18,31 +18,53 @@ pub struct TemplateData<'a> {
 
 // Create a new template renderer instance
 fn create_template_renderer(template_path: Option<&Path>) -> Result<Tera, String> {
-    let mut tera = match template_path {
-        Some(path) if path.exists() && path.is_file() => {
+    let mut tera = if let Some(path) = template_path {
+        if path.exists() && path.is_file() {
             // Use custom template file
             let template_name = path.file_name().unwrap().to_str().unwrap();
-            match std::fs::read_to_string(path) {
-                Ok(content) => {
-                    let mut t = Tera::default();
-                    t.add_raw_template(template_name, &content)
-                        .map_err(|e| format!("Failed to add template: {}", e))?;
-                    t
-                }
-                Err(e) => return Err(format!("Failed to read template file: {}", e)),
-            }
-        }
-        _ => {
-            // Use default embedded template
+            let content = std::fs::read_to_string(path)
+                .map_err(|e| format!("Failed to read template file: {}", e))?;
+
             let mut t = Tera::default();
-            t.add_raw_template("markdown.html", include_str!("../templates/markdown.html"))
-                .map_err(|e| format!("Failed to add default template: {}", e))?;
+            t.add_raw_template(template_name, &content)
+                .map_err(|e| format!("Failed to add template: {}", e))?;
             t
+        } else {
+            return Err(format!(
+                "Template path does not exist or is not a file: {:?}",
+                path
+            ));
+        }
+    } else {
+        // Use default templates directory
+        match Tera::new("templates/**/*.html") {
+            Ok(t) => t,
+            Err(e) => {
+                println!("Parsing error(s): {}", e);
+                ::std::process::exit(1);
+            }
         }
     };
 
     // Add any custom filters or functions here
     tera.autoescape_on(vec![]); // Disable autoescaping for HTML content
+
+    // Always register default templates to ensure includes work,
+    // but only if they haven't already been loaded from the filesystem
+    if !tera.templates.contains_key("header.html") {
+        tera.add_raw_template("header.html", include_str!("../templates/header.html"))
+            .map_err(|e| format!("Failed to add header template: {}", e))?;
+    }
+
+    if !tera.templates.contains_key("footer.html") {
+        tera.add_raw_template("footer.html", include_str!("../templates/footer.html"))
+            .map_err(|e| format!("Failed to add footer template: {}", e))?;
+    }
+
+    if !tera.templates.contains_key("layout.html") {
+        tera.add_raw_template("layout.html", include_str!("../templates/layout.html"))
+            .map_err(|e| format!("Failed to add layout template: {}", e))?;
+    }
 
     Ok(tera)
 }
@@ -75,9 +97,6 @@ pub fn render(
     context.insert("frontmatter_block", frontmatter_block);
 
     // Default values
-    let custom_css = "";
-    let custom_header = "";
-    let custom_footer = "";
     let default_nav = r#"<a href="/" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">Home</a>
         <a href="/docs" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">Documentation</a>
         <a href="/about" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">About</a>"#;
@@ -85,27 +104,6 @@ pub fn render(
 
     // Add config-based customizations
     if let Some(cfg) = config {
-        // Add custom CSS if provided
-        if let Some(css) = &cfg.custom_css {
-            context.insert("custom_css", css);
-        } else {
-            context.insert("custom_css", custom_css);
-        }
-
-        // Add custom header if provided
-        if let Some(header) = &cfg.header {
-            context.insert("custom_header", header);
-        } else {
-            context.insert("custom_header", custom_header);
-        }
-
-        // Add custom footer if provided
-        if let Some(footer) = &cfg.footer {
-            context.insert("custom_footer", footer);
-        } else {
-            context.insert("custom_footer", custom_footer);
-        }
-
         // Build navigation links
         if let Some(navigation) = &cfg.navigation {
             let mut nav_links = String::new();
@@ -121,9 +119,6 @@ pub fn render(
         }
     } else {
         // No config, use defaults
-        context.insert("custom_css", custom_css);
-        context.insert("custom_header", custom_header);
-        context.insert("custom_footer", custom_footer);
         context.insert("navigation_links", navigation_links);
     }
 

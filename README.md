@@ -96,9 +96,6 @@ When creating a custom template, the following variables are available:
 - `{{header_title}}` - Header title from frontmatter's `title` field (default: "Wiki")
 - `{{description}}` - Description from frontmatter's `description` field (default: "Markdown document")
 - `{{frontmatter_block}}` - HTML block with formatted frontmatter information (author, date, description, tags)
-- `{{custom_css}}` - Custom CSS content from the YAML configuration file
-- `{{custom_header}}` - Custom HTML header content from the YAML configuration file
-- `{{custom_footer}}` - Custom HTML footer content from the YAML configuration file
 - `{{navigation_links}}` - Navigation links from the configuration file (or default links if not provided)
 
 ### YAML Configuration File

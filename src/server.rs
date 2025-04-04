@@ -33,7 +33,7 @@ struct AppState {
 
 impl Server {
     pub fn new_with_directory(dir: PathBuf) -> Self {
-        let template = include_str!("../templates/markdown.html").to_string();
+        let template = include_str!("../templates/layout.html").to_string();
         let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
         Self {
             dir,

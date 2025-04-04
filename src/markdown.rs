@@ -120,7 +120,7 @@ pub fn render_markdown(_content: &str, _template: &str, config: Option<&Config>)
     };
 
     // Use Tera template for rendering
-    let template_name = "markdown.html";
+    let template_name = "layout.html";
     let result = template::render(
         template_name,
         &html_output,

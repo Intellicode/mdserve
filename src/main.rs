@@ -120,7 +120,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 None => {
                     info!("Using default template");
-                    include_str!("../templates/markdown.html").to_string()
+                    include_str!("../templates/layout.html").to_string()
                 }
             };
 

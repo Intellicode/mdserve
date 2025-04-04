@@ -197,28 +197,17 @@
                 font-size: 1.25rem;
             }
         }
-
-        /* Custom CSS from config */
-            {{custom_css}}
     </style>
 </head>
 
 <body>
-    <!-- Custom header from config -->
-    <header
-        style="text-align: center; margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color);">
-        <h1 style="margin: 0 0 1rem 0;">{{header_title}}</h1>
-        <nav style="display: flex; justify-content: center; gap: 2rem;">
-            {{navigation_links}}
-        </nav>
-    </header>
+    {% include "header.html" %}
 
     {{frontmatter_block}}
 
     {{content}}
 
-    <!-- Custom footer from config -->
-    {{custom_footer}}
+    {% include "footer.html" %}
 </body>
 
 </html>

@@ -6,15 +6,6 @@ use tracing::{error, info};
 /// Configuration for mdserve with custom styling and layout options
 #[derive(Debug, Deserialize, Default, Clone)]
 pub struct Config {
-    /// Custom CSS to include in the HTML template
-    pub custom_css: Option<String>,
-
-    /// Custom HTML content for the page header
-    pub header: Option<String>,
-
-    /// Custom HTML content for the page footer
-    pub footer: Option<String>,
-
     /// Navigation links to display in the header
     pub navigation: Option<Vec<NavLink>>,
 }

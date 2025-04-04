@@ -1,26 +1,3 @@
-# Example mdserve configuration file
-
-# Custom CSS to be injected into the HTML page
-custom_css: |
- /* custom css */
-
-# Custom HTML content for the page header (optional)
-header: |
-  <div style="background: #f5f5f5; padding: 10px; margin-bottom: 20px; text-align: center;">
-    <img src="/logo.png" alt="Logo" style="height: 40px;">
-    <p>Your custom header content goes here</p>
-  </div>
-
-# Custom HTML content for the page footer (optional)
-footer: |
-  <footer
-        style="text-align: center; margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); color: #666;">
-        <p style="margin: 0;">
-            © 2024 Tom Hastjarjanto. Powered by <a href="https://github.com/intellicode/mdserve"
-                style="color: var(--link-color); text-decoration: none;">mdserve</a>
-        </p>
-    </footer>
-
 # Navigation links to be displayed in the header
 navigation:
   - text: Home

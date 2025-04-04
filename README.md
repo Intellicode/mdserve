@@ -176,29 +176,18 @@ To verify a binary:
 
 1. Install the Sigstore CLI:
    ```bash
-   pip install sigstore
+   brew install cosign
    ```
 
 2. Download the binary and its signature files:
-   ```bash
-   # Example URLs - replace with actual URLs from the GitHub release page
-   BINARY_URL="https://github.com/yourusername/mdserve/releases/download/v1.0.0/mdserve-linux-amd64"
-   SIGSTORE_URL="https://github.com/yourusername/mdserve/releases/download/v1.0.0/mdserve-linux-amd64.sigstore"
-   CERT_URL="https://github.com/yourusername/mdserve/releases/download/v1.0.0/mdserve-linux-amd64.pem"
-   
-   # Download the files
-   curl -L $BINARY_URL -o mdserve
-   curl -L $SIGSTORE_URL -o mdserve.sigstore
-   curl -L $CERT_URL -o mdserve.pem
-   ```
+   Visit the [Releases](https://github.com/Intellicode/mdserve/releases) page to download the binary for your platform along with sigstore bundle.
 
 3. Verify the signature:
    ```bash
-   sigstore verify bundle mdserve \
-     --signature-artifact=mdserve.sigstore \
-     --certificate-artifact=mdserve.pem \
-     --certificate-identity="OWNER@users.noreply.github.com" \
-     --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
+   cosign verify-blob mdserve-darwin-arm64 \
+   --bundle mdserve-darwin-arm64.sigstore.json \
+   --certificate-identity "https://github.com/Intellicode/mdserve/.github/workflows/rust.yml@refs/tags/v0.5.3" \
+   --certificate-oidc-issuer  "https://token.actions.githubusercontent.com"
    ```
 
 This verification ensures that the binary was signed by the official GitHub Actions workflow during the release process.

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/Intellicode/mdserve/compare/v0.5.2...v0.5.3) (2025-04-04)
+
+
+### Bug Fixes
+
+* upload sigstore bundle ([3e176a4](https://github.com/Intellicode/mdserve/commit/3e176a4065344144027d592222c9d584f9d788a8))
+
 ## [0.5.2](https://github.com/Intellicode/mdserve/compare/v0.5.1...v0.5.2) (2025-04-04)
 
 

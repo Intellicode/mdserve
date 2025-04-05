@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.0](https://github.com/Intellicode/mdserve/compare/v0.5.3...v0.6.0) (2025-04-05)
+
+
+### Features
+
+* support source/templates dir option in config ([0952401](https://github.com/Intellicode/mdserve/commit/09524014c842999a60c11ac693df5fd76c44482d))
+* use template includes instead of config ([23e8ba9](https://github.com/Intellicode/mdserve/commit/23e8ba9587f0474b1c37249a22fe7907ed84f14f))
+
+
+### Bug Fixes
+
+* clippy issues ([b1e30c8](https://github.com/Intellicode/mdserve/commit/b1e30c82d11dab0ba8edf6ed40f7ab4307fcdd56))
+* formatting issues ([7da1487](https://github.com/Intellicode/mdserve/commit/7da1487d1e6ba5f0c3883d9cb6c8ef12aee2ad0e))
+
 ## [0.5.3](https://github.com/Intellicode/mdserve/compare/v0.5.2...v0.5.3) (2025-04-04)
 
 

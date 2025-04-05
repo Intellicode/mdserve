@@ -40,7 +40,7 @@ pub fn extract_frontmatter(content: &str) -> (Option<Frontmatter>, &str) {
 pub fn parse_markdown(content: &str) -> (String, String, String, String, String) {
     // Extract frontmatter if present
     let (frontmatter, content_without_frontmatter) = extract_frontmatter(content);
-    
+
     // Process markdown content
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
@@ -49,29 +49,29 @@ pub fn parse_markdown(content: &str) -> (String, String, String, String, String)
     let parser = Parser::new_ext(content_without_frontmatter, options);
     let mut html_output = String::new();
     html::push_html(&mut html_output, parser);
-    
+
     // Default values
     let default_title = "Markdown Viewer";
     let default_description = "Markdown document";
     let default_header_title = "Wiki";
-    
+
     // Build frontmatter HTML block and collect metadata for template
     let (title, header_title, description, frontmatter_html) = if let Some(fm) = frontmatter {
         // Title handling
         let title = fm.title.as_deref().unwrap_or(default_title).to_string();
         let header_title = title.clone();
-        
+
         // Description handling
         let description = fm
             .description
             .as_deref()
             .unwrap_or(default_description)
             .to_string();
-        
+
         // Create frontmatter info block
         let mut frontmatter_html = String::new();
         frontmatter_html.push_str("<div class=\"frontmatter-info\">");
-        
+
         // Add author and date if available
         if fm.author.is_some() || fm.date.is_some() {
             frontmatter_html.push_str("<div>");
@@ -86,12 +86,12 @@ pub fn parse_markdown(content: &str) -> (String, String, String, String, String)
             }
             frontmatter_html.push_str("</div>");
         }
-        
+
         // Add description if available
         if let Some(description) = &fm.description {
             frontmatter_html.push_str(&format!("<div class=\"description\">{description}</div>"));
         }
-        
+
         // Add tags if available
         if let Some(tags) = &fm.tags {
             if !tags.is_empty() {
@@ -103,7 +103,7 @@ pub fn parse_markdown(content: &str) -> (String, String, String, String, String)
             }
         }
         frontmatter_html.push_str("</div>");
-        
+
         (title, header_title, description, frontmatter_html)
     } else {
         // No frontmatter, use defaults
@@ -114,14 +114,20 @@ pub fn parse_markdown(content: &str) -> (String, String, String, String, String)
             String::new(),
         )
     };
-    
-    (html_output, title, header_title, description, frontmatter_html)
+
+    (
+        html_output,
+        title,
+        header_title,
+        description,
+        frontmatter_html,
+    )
 }
 
 pub fn render_markdown(content: &str, config: Option<&Config>) -> Html<String> {
     // Parse markdown and extract components
     let (html_output, title, header_title, description, frontmatter_html) = parse_markdown(content);
-    
+
     // Use Tera template for rendering
     let template_name = "layout.html";
     let result = template::render(
@@ -133,7 +139,7 @@ pub fn render_markdown(content: &str, config: Option<&Config>) -> Html<String> {
         &frontmatter_html,
         config,
     );
-    
+
     match result {
         Ok(html_string) => Html(html_string),
         Err(err) => Html(format!("<h1>Template Error</h1><p>{}</p>", err)),

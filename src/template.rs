@@ -32,13 +32,19 @@ impl<'a> TemplateData<'a> {
                 context.insert("custom_header", self.custom_header);
                 context.insert("custom_footer", self.custom_footer);
                 context.insert("navigation_links", self.navigation_links);
-                
+
                 match t.render("inline_template", &context) {
                     Ok(html) => (html, "".to_string()),
-                    Err(e) => (format!("<h1>Template Error</h1><p>{}</p>", e), "".to_string()),
+                    Err(e) => (
+                        format!("<h1>Template Error</h1><p>{}</p>", e),
+                        "".to_string(),
+                    ),
                 }
             }
-            Err(e) => (format!("<h1>Template Error</h1><p>{}</p>", e), "".to_string()),
+            Err(e) => (
+                format!("<h1>Template Error</h1><p>{}</p>", e),
+                "".to_string(),
+            ),
         };
         result
     }

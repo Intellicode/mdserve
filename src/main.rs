@@ -135,12 +135,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             };
 
-            export_markdown_to_html(
-                &source_dir,
-                output_dir,
-                &template_content,
-                Some(&config_obj),
-            )?;
+            export_markdown_to_html(&source_dir, output_dir, &template_content)?;
             info!(
                 "Exported markdown files from {} to {}",
                 source_dir.display(),

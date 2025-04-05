@@ -53,7 +53,6 @@ pub fn export_markdown_to_html(
     input_dir: &Path,
     output_dir: &Path,
     template: &str,
-    config: Option<&Config>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Create output directory if it doesn't exist
     if !output_dir.exists() {

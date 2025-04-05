@@ -16,11 +16,11 @@ pub struct TemplateData<'a> {
     pub navigation_links: &'a str,
 }
 
-impl<'a> TemplateData<'a> {
+impl TemplateData<'_> {
     // Add a method to render HTML with a provided template
     pub fn to_html(&self, template_content: &str) -> (String, String) {
         let mut t = Tera::default();
-        let result = match t.add_raw_template("inline_template", template_content) {
+        match t.add_raw_template("inline_template", template_content) {
             Ok(_) => {
                 let mut context = Context::new();
                 context.insert("content", self.content);
@@ -45,8 +45,7 @@ impl<'a> TemplateData<'a> {
                 format!("<h1>Template Error</h1><p>{}</p>", e),
                 "".to_string(),
             ),
-        };
-        result
+        }
     }
 }
 

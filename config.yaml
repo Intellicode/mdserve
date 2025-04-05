@@ -8,3 +8,9 @@ navigation:
     url: /examples
   - text: GitHub
     url: https://github.com/intellicode/mdserve
+
+# Source directory for markdown files (default is current directory)
+source_dir: "./examples"
+
+# Template directory for HTML templates (default is "./templates")
+template_dir: "./templates"

@@ -8,7 +8,6 @@ use walkdir::WalkDir;
 
 pub fn serve_markdown(
     path: &Path,
-    template: &str,
     headers: &HeaderMap,
     config: Option<&Config>,
 ) -> Response<String> {
@@ -18,7 +17,7 @@ pub fn serve_markdown(
     // Check if the file exists and handle not found case
     if !path.exists() {
         let content = "# Error\nFile not found.";
-        let html = render_markdown(content, template, config);
+        let html = render_markdown(content, config);
         return Response::builder()
             .status(StatusCode::NOT_FOUND)
             .body(html.0)
@@ -38,11 +37,11 @@ pub fn serve_markdown(
     // Read and render content
     let content = std::fs::read_to_string(path)
         .unwrap_or_else(|_| "# Error\nFailed to read file.".to_string());
-    let html = render_markdown(&content, template, config);
+
+    let html = render_markdown(&content, config);
 
     // Build response with ETag
     let mut builder = Response::builder().header(header::CONTENT_TYPE, "text/html");
-
     if let Some(etag) = etag {
         builder = builder.header(header::ETAG, etag);
     }
@@ -67,11 +66,26 @@ pub fn export_markdown_to_html(
         .filter_map(std::result::Result::ok)
     {
         let path = entry.path().to_path_buf();
-
         if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("md") {
             // Read markdown content
             let content = fs::read_to_string(&path)?;
-            let html = render_markdown(&content, template, config);
+
+            // We always have a template at this point, so we should use it
+            let (parsed_content, title, header_title, description, frontmatter) =
+                crate::markdown::parse_markdown(&content);
+
+            let html = crate::template::TemplateData {
+                content: &parsed_content,
+                title: &title,
+                header_title: &header_title,
+                description: &description,
+                frontmatter_block: &frontmatter,
+                custom_css: "",
+                custom_header: "",
+                custom_footer: "",
+                navigation_links: "",
+            }
+            .to_html(template);
 
             // Determine output file path
             let relative_path = path.strip_prefix(input_dir)?;
@@ -87,6 +101,5 @@ pub fn export_markdown_to_html(
             fs::write(output_path, html.0)?;
         }
     }
-
     Ok(())
 }

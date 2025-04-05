@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use tracing::{error, info};
 
 /// Configuration for mdserve with custom styling and layout options
@@ -8,6 +8,10 @@ use tracing::{error, info};
 pub struct Config {
     /// Navigation links to display in the header
     pub navigation: Option<Vec<NavLink>>,
+    /// Source directory for markdown files (default: current directory)
+    pub source_dir: Option<PathBuf>,
+    /// Template directory for HTML templates (default: "./templates")
+    pub template_dir: Option<PathBuf>,
 }
 
 /// Navigation link structure
@@ -44,5 +48,17 @@ impl Config {
                 Config::default()
             }
         }
+    }
+
+    /// Get the source directory path from config or default
+    pub fn get_source_directory(&self) -> PathBuf {
+        self.source_dir
+            .clone()
+            .unwrap_or_else(|| PathBuf::from("."))
+    }
+
+    /// Get the template directory path from config or default
+    pub fn get_template_directory(&self) -> Option<PathBuf> {
+        self.template_dir.clone()
     }
 }

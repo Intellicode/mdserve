@@ -16,15 +16,45 @@ pub struct TemplateData<'a> {
     pub navigation_links: &'a str,
 }
 
+impl<'a> TemplateData<'a> {
+    // Add a method to render HTML with a provided template
+    pub fn to_html(&self, template_content: &str) -> (String, String) {
+        let mut t = Tera::default();
+        let result = match t.add_raw_template("inline_template", template_content) {
+            Ok(_) => {
+                let mut context = Context::new();
+                context.insert("content", self.content);
+                context.insert("title", self.title);
+                context.insert("header_title", self.header_title);
+                context.insert("description", self.description);
+                context.insert("frontmatter_block", self.frontmatter_block);
+                context.insert("custom_css", self.custom_css);
+                context.insert("custom_header", self.custom_header);
+                context.insert("custom_footer", self.custom_footer);
+                context.insert("navigation_links", self.navigation_links);
+                
+                match t.render("inline_template", &context) {
+                    Ok(html) => (html, "".to_string()),
+                    Err(e) => (format!("<h1>Template Error</h1><p>{}</p>", e), "".to_string()),
+                }
+            }
+            Err(e) => (format!("<h1>Template Error</h1><p>{}</p>", e), "".to_string()),
+        };
+        result
+    }
+}
+
 // Create a new template renderer instance
-fn create_template_renderer(template_path: Option<&Path>) -> Result<Tera, String> {
+fn create_template_renderer(
+    template_path: Option<&Path>,
+    config: Option<&Config>,
+) -> Result<Tera, String> {
     let mut tera = if let Some(path) = template_path {
         if path.exists() && path.is_file() {
             // Use custom template file
             let template_name = path.file_name().unwrap().to_str().unwrap();
             let content = std::fs::read_to_string(path)
                 .map_err(|e| format!("Failed to read template file: {}", e))?;
-
             let mut t = Tera::default();
             t.add_raw_template(template_name, &content)
                 .map_err(|e| format!("Failed to add template: {}", e))?;
@@ -35,13 +65,35 @@ fn create_template_renderer(template_path: Option<&Path>) -> Result<Tera, String
                 path
             ));
         }
+    } else if let Some(cfg) = config {
+        // Try to use template directory from config
+        if let Some(template_dir) = cfg.get_template_directory() {
+            let template_pattern = format!("{}/**/*.html", template_dir.display());
+            match Tera::new(&template_pattern) {
+                Ok(t) => t,
+                Err(e) => {
+                    return Err(format!(
+                        "Failed to load templates from {}: {}",
+                        template_dir.display(),
+                        e
+                    ));
+                }
+            }
+        } else {
+            // Use default template directory
+            match Tera::new("templates/**/*.html") {
+                Ok(t) => t,
+                Err(e) => {
+                    return Err(format!("Failed to load default templates: {}", e));
+                }
+            }
+        }
     } else {
-        // Use default templates directory
+        // Use default templates directory (no config provided)
         match Tera::new("templates/**/*.html") {
             Ok(t) => t,
             Err(e) => {
-                println!("Parsing error(s): {}", e);
-                ::std::process::exit(1);
+                return Err(format!("Failed to load default templates: {}", e));
             }
         }
     };
@@ -69,9 +121,8 @@ pub fn render(
     frontmatter_block: &str,
     config: Option<&Config>,
 ) -> Result<String, String> {
-    // Create a new template renderer every time
-    let templates = create_template_renderer(None)?;
-
+    // Create a new template renderer every time, passing config for template directory
+    let templates = create_template_renderer(None, config)?;
     let mut context = Context::new();
     context.insert("content", content);
     context.insert("title", title);

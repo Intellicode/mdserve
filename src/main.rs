@@ -20,36 +20,26 @@ struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
 
-    /// Directory to serve (backward compatibility mode)
-    #[arg(global = false)]
-    directory: Option<PathBuf>,
+    /// Config file path (backward compatibility mode)
+    #[arg(long, global = false)]
+    config: Option<PathBuf>,
 }
 
 #[derive(Subcommand)]
 enum Commands {
     /// Serve markdown files from a directory
     Serve {
-        /// Directory containing markdown files to serve
-        directory: PathBuf,
-
-        /// Optional YAML config file path
+        /// YAML config file path
         #[arg(long)]
         config: Option<PathBuf>,
     },
 
     /// Export markdown files to HTML
     Export {
-        /// Input directory containing markdown files
-        input_dir: PathBuf,
-
         /// Output directory for HTML files
         output_dir: PathBuf,
 
-        /// Optional custom HTML template file
-        #[arg(long)]
-        template: Option<PathBuf>,
-
-        /// Optional YAML config file path
+        /// YAML config file path
         #[arg(long)]
         config: Option<PathBuf>,
     },
@@ -64,41 +54,62 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Handle commands
     match &cli.command {
-        Some(Commands::Serve { directory, config }) => {
-            // Validate directory
-            if !directory.exists() || !directory.is_dir() {
-                error!(
-                    "Directory does not exist or is not a directory: {}",
-                    directory.display()
-                );
+        Some(Commands::Serve { config }) => {
+            // Load config if provided
+            let config_path = config.clone();
+
+            // If no config provided, use default directory
+            if config_path.is_none() {
+                error!("No config file specified. Please provide a config file with --config");
                 return Ok(());
             }
 
-            start_server(directory, config.clone()).await?;
+            start_server(&PathBuf::from("."), config_path).await?;
         }
-        Some(Commands::Export {
-            input_dir,
-            output_dir,
-            template,
-            config,
-        }) => {
+        Some(Commands::Export { output_dir, config }) => {
+            // Load config if provided
+            let config_path = config.clone();
+
+            if config_path.is_none() {
+                error!("No config file specified. Please provide a config file with --config");
+                return Ok(());
+            }
+
+            let config_obj = Config::from_file(&config_path.unwrap());
+
+            // Use input_dir from config
+            let source_dir = config_obj.get_source_directory();
+
             // Validate directories
-            if !input_dir.exists() || !input_dir.is_dir() {
+            if !source_dir.exists() || !source_dir.is_dir() {
                 error!(
                     "Input directory does not exist or is not a directory: {}",
-                    input_dir.display()
+                    source_dir.display()
                 );
                 return Ok(());
             }
 
+            // Determine template path from config
+            let template_path = if let Some(tpl_dir) = &config_obj.template_dir {
+                // Try to find layout.html in the template directory
+                let default_template = tpl_dir.join("layout.html");
+                if default_template.exists() && default_template.is_file() {
+                    Some(default_template)
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+
             // Initialize templates
-            if let Err(e) = template::initialize_templates(template.as_deref()) {
+            if let Err(e) = template::initialize_templates(template_path.as_deref()) {
                 error!("Failed to initialize templates: {}", e);
                 return Ok(());
             }
 
             // Get template content - either from file or use the default
-            let template_content = match template {
+            let template_content = match &template_path {
                 Some(path) => {
                     if !path.exists() || !path.is_file() {
                         error!(
@@ -124,33 +135,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             };
 
-            // Load config if provided
-            let config_obj = config.as_ref().map(|path| Config::from_file(path));
-
             export_markdown_to_html(
-                input_dir,
+                &source_dir,
                 output_dir,
                 &template_content,
-                config_obj.as_ref(),
+                Some(&config_obj),
             )?;
             info!(
                 "Exported markdown files from {} to {}",
-                input_dir.display(),
+                source_dir.display(),
                 output_dir.display()
             );
         }
         None => {
-            // Backward compatibility mode - direct directory argument
-            if let Some(directory) = &cli.directory {
-                if !directory.exists() || !directory.is_dir() {
-                    error!(
-                        "Directory does not exist or is not a directory: {}",
-                        directory.display()
-                    );
-                    return Ok(());
-                }
-
-                start_server(directory, None).await?;
+            // Backward compatibility mode - direct config argument
+            if let Some(config) = &cli.config {
+                start_server(&PathBuf::from("."), Some(config.clone())).await?;
             } else {
                 // No arguments provided - show help
                 let _ = Cli::parse_from(["mdserve", "--help"]);
@@ -162,10 +162,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn start_server(
-    directory: &Path,
+    _: &Path, // Unused parameter as we'll only use config
     config_path: Option<PathBuf>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let server = Server::new_with_directory(directory.to_path_buf()).with_config(config_path);
+    // Default directory is "." but will be overridden by config
+    let server = Server::new_with_directory(PathBuf::from(".")).with_config(config_path);
 
     if let Err(e) = server.run().await {
         error!("Server error: {}", e);

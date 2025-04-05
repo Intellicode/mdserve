@@ -19,7 +19,6 @@ use tracing::{error, info};
 
 pub struct Server {
     dir: PathBuf,
-    template: String,
     port: String,
     config: Option<Config>,
 }
@@ -27,31 +26,36 @@ pub struct Server {
 struct AppState {
     cache: DashMap<String, Response<String>>,
     dir: PathBuf,
-    template: String,
     config: Option<Config>,
 }
 
 impl Server {
     pub fn new_with_directory(dir: PathBuf) -> Self {
-        let template = include_str!("../templates/layout.html").to_string();
         let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
         Self {
             dir,
-            template,
             port,
             config: None,
         }
     }
 
     pub fn with_config(mut self, config_path: Option<PathBuf>) -> Self {
-        // Initialize templates first
+        // Initialize templates
         if let Err(e) = template::initialize_templates(None) {
             error!("Failed to initialize templates: {}", e);
         }
 
+        // Load config if path is provided
         if let Some(path) = config_path {
             self.config = Some(Config::from_file(&path));
+
+            // Always use source_dir from config if config is provided
+            if let Some(config) = &self.config {
+                self.dir = config.get_source_directory();
+                info!("Using source directory from config: {}", self.dir.display());
+            }
         }
+
         self
     }
 
@@ -65,7 +69,6 @@ impl Server {
         let shared_state = Arc::new(AppState {
             cache,
             dir: md_dir_index,
-            template: self.template,
             config: self.config,
         });
 
@@ -122,12 +125,8 @@ fn handle(filename: &str, state: &Arc<AppState>, headers: &HeaderMap) -> Respons
         return cached_html.clone();
     }
 
-    let rendered = markdown_handler::serve_markdown(
-        &state.dir.join(filename),
-        &state.template,
-        headers,
-        state.config.as_ref(),
-    );
+    let rendered =
+        markdown_handler::serve_markdown(&state.dir.join(filename), headers, state.config.as_ref());
 
     state.cache.insert(cache_key.to_string(), rendered.clone());
     rendered
@@ -137,9 +136,10 @@ async fn request_logger(req: Request<Body>, next: Next) -> impl IntoResponse {
     let start = Instant::now();
     let method = req.method().clone();
     let uri = req.uri().clone();
-    let response = next.run(req).await;
-    let duration = start.elapsed();
 
+    let response = next.run(req).await;
+
+    let duration = start.elapsed();
     let log_entry = json!({
         "method": method.to_string(),
         "uri": uri.to_string(),

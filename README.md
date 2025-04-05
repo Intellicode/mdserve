@@ -38,24 +38,18 @@ cargo run --release -- /path/to/your/markdown/files
 ### Starting the Server
 
 ```bash
-# Default port (3000)
-cargo run -- /path/to/docs
+# With configuration file (required)
+cargo run -- serve --config /path/to/config.yaml
 
-# Custom port
-PORT=8080 cargo run -- /path/to/docs
-
-# With configuration file
-cargo run -- serve --directory /path/to/docs --config /path/to/config.yaml
+# Backward compatibility mode
+cargo run -- --config /path/to/config.yaml
 ```
 
 ### Exporting Static HTML
 
 ```bash
-# Export markdown to HTML
-cargo run -- export --input-dir /path/to/docs --output-dir /path/to/html
-
-# With custom template and configuration
-cargo run -- export --input-dir /path/to/docs --output-dir /path/to/html --template /path/to/template.html --config /path/to/config.yaml
+# Export markdown to HTML (config required)
+cargo run -- export --output-dir /path/to/html --config /path/to/config.yaml
 ```
 
 ### Directory Structure
@@ -103,6 +97,12 @@ When creating a custom template, the following variables are available:
 You can customize the appearance and content of your markdown site using a YAML configuration file. Here's an example:
 
 ```yaml
+# Source directory for markdown files (required)
+source_dir: "/path/to/your/markdown/files"
+
+# Template directory for HTML templates (optional, default: "./templates")
+template_dir: "/path/to/templates"
+
 # Custom CSS to be injected into the HTML page
 custom_css: |
   body {

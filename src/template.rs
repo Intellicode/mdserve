@@ -14,6 +14,7 @@ pub struct TemplateData<'a> {
     pub custom_header: &'a str,
     pub custom_footer: &'a str,
     pub navigation_links: &'a str,
+    pub base_url: &'a str,
 }
 
 impl TemplateData<'_> {
@@ -32,6 +33,7 @@ impl TemplateData<'_> {
                 context.insert("custom_header", self.custom_header);
                 context.insert("custom_footer", self.custom_footer);
                 context.insert("navigation_links", self.navigation_links);
+                context.insert("base_url", self.base_url);
 
                 match t.render("inline_template", &context) {
                     Ok(html) => (html, "".to_string()),
@@ -140,16 +142,37 @@ pub fn render(
         <a href="/docs" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">Documentation</a>
         <a href="/about" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">About</a>"#;
     let navigation_links = default_nav;
+    let base_url = "/";
 
     // Add config-based customizations
     if let Some(cfg) = config {
+        // Get base URL from config
+        let base_url_from_config = cfg.get_base_url();
+        context.insert("base_url", &base_url_from_config);
+
         // Build navigation links
         if let Some(navigation) = &cfg.navigation {
             let mut nav_links = String::new();
             for link in navigation {
+                let url = if link.url.starts_with("http") || link.url.starts_with("https") {
+                    // External URL, use as is
+                    link.url.clone()
+                } else {
+                    // Internal URL, prepend base_url if it doesn't start with /
+                    if link.url.starts_with("/") {
+                        format!("{}{}", base_url_from_config.trim_end_matches('/'), link.url)
+                    } else {
+                        format!(
+                            "{}/{}",
+                            base_url_from_config.trim_end_matches('/'),
+                            link.url
+                        )
+                    }
+                };
+
                 nav_links.push_str(&format!(
                     "<a href=\"{}\" style=\"color: var(--link-color); text-decoration: none; font-size: 1.1rem;\">{}</a>",
-                    link.url, link.text
+                    url, link.text
                 ));
             }
             context.insert("navigation_links", &nav_links);
@@ -159,6 +182,7 @@ pub fn render(
     } else {
         // No config, use defaults
         context.insert("navigation_links", navigation_links);
+        context.insert("base_url", base_url);
     }
 
     templates

@@ -83,6 +83,7 @@ pub fn export_markdown_to_html(
                 custom_header: "",
                 custom_footer: "",
                 navigation_links: "",
+                base_url: "",
             }
             .to_html(template);
 

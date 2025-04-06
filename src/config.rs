@@ -12,6 +12,8 @@ pub struct Config {
     pub source_dir: Option<PathBuf>,
     /// Template directory for HTML templates (default: "./templates")
     pub template_dir: Option<PathBuf>,
+    /// Base URL for the site (default: "/")
+    pub base_url: Option<String>,
 }
 
 /// Navigation link structure
@@ -60,5 +62,10 @@ impl Config {
     /// Get the template directory path from config or default
     pub fn get_template_directory(&self) -> Option<PathBuf> {
         self.template_dir.clone()
+    }
+
+    /// Get the base URL from config or default to "/"
+    pub fn get_base_url(&self) -> String {
+        self.base_url.clone().unwrap_or_else(|| String::from("/"))
     }
 }

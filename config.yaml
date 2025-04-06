@@ -14,3 +14,6 @@ source_dir: "./examples"
 
 # Template directory for HTML templates (default is "./templates")
 template_dir: "./templates"
+
+# Base URL for the site (default is "/")
+base_url: "/"

@@ -70,77 +70,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             // Load config if provided
             let config_path = config.clone();
 
+            // If no config provided, show error
             if config_path.is_none() {
                 error!("No config file specified. Please provide a config file with --config");
                 return Ok(());
             }
 
-            let config_obj = Config::from_file(&config_path.unwrap());
-
-            // Use input_dir from config
-            let source_dir = config_obj.get_source_directory();
-
-            // Validate directories
-            if !source_dir.exists() || !source_dir.is_dir() {
-                error!(
-                    "Input directory does not exist or is not a directory: {}",
-                    source_dir.display()
-                );
-                return Ok(());
-            }
-
-            // Determine template path from config
-            let template_path = if let Some(tpl_dir) = &config_obj.template_dir {
-                // Try to find layout.html in the template directory
-                let default_template = tpl_dir.join("layout.html");
-                if default_template.exists() && default_template.is_file() {
-                    Some(default_template)
-                } else {
-                    None
-                }
-            } else {
-                None
-            };
-
-            // Initialize templates
-            if let Err(e) = template::initialize_templates(template_path.as_deref()) {
-                error!("Failed to initialize templates: {}", e);
-                return Ok(());
-            }
-
-            // Get template content - either from file or use the default
-            let template_content = match &template_path {
-                Some(path) => {
-                    if !path.exists() || !path.is_file() {
-                        error!(
-                            "Template file does not exist or is not a file: {}",
-                            path.display()
-                        );
-                        return Ok(());
-                    }
-                    match fs::read_to_string(path) {
-                        Ok(content) => {
-                            info!("Using custom template file: {}", path.display());
-                            content
-                        }
-                        Err(e) => {
-                            error!("Failed to read template file: {}", e);
-                            return Ok(());
-                        }
-                    }
-                }
-                None => {
-                    info!("Using default template");
-                    include_str!("../templates/layout.html").to_string()
-                }
-            };
-
-            export_markdown_to_html(&source_dir, output_dir, &template_content)?;
-            info!(
-                "Exported markdown files from {} to {}",
-                source_dir.display(),
-                output_dir.display()
-            );
+            start_export(output_dir, config_path)?;
         }
         None => {
             // Backward compatibility mode - direct config argument
@@ -166,5 +102,97 @@ async fn start_server(
     if let Err(e) = server.run().await {
         error!("Server error: {}", e);
     }
+    Ok(())
+}
+
+fn start_export(
+    output_dir: &PathBuf,
+    config_path: Option<PathBuf>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    // If no config provided, this shouldn't happen but let's handle it anyway
+    let config_path = match config_path {
+        Some(path) => path,
+        None => {
+            error!("No config file specified.");
+            return Ok(());
+        }
+    };
+
+    // Load config
+    let config_obj = Config::from_file(&config_path);
+
+    // Use input_dir from config
+    let source_dir = config_obj.get_source_directory();
+
+    // Validate directories
+    if !source_dir.exists() || !source_dir.is_dir() {
+        error!(
+            "Input directory does not exist or is not a directory: {}",
+            source_dir.display()
+        );
+        return Ok(());
+    }
+
+    // Create output directory if it doesn't exist
+    if !output_dir.exists() {
+        if let Err(e) = std::fs::create_dir_all(output_dir) {
+            error!("Failed to create output directory: {}", e);
+            return Ok(());
+        }
+    }
+
+    // Determine template path from config
+    let template_path = if let Some(tpl_dir) = &config_obj.template_dir {
+        // Try to find layout.html in the template directory
+        let default_template = tpl_dir.join("layout.html");
+        if default_template.exists() && default_template.is_file() {
+            Some(default_template)
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    // Initialize templates
+    if let Err(e) = template::initialize_templates(template_path.as_deref()) {
+        error!("Failed to initialize templates: {}", e);
+        return Ok(());
+    }
+
+    // Get template content - either from file or use the default
+    let template_content = match &template_path {
+        Some(path) => {
+            if !path.exists() || !path.is_file() {
+                error!(
+                    "Template file does not exist or is not a file: {}",
+                    path.display()
+                );
+                return Ok(());
+            }
+            match fs::read_to_string(path) {
+                Ok(content) => {
+                    info!("Using custom template file: {}", path.display());
+                    content
+                }
+                Err(e) => {
+                    error!("Failed to read template file: {}", e);
+                    return Ok(());
+                }
+            }
+        }
+        None => {
+            info!("Using default template");
+            include_str!("../templates/layout.html").to_string()
+        }
+    };
+
+    export_markdown_to_html(&source_dir, output_dir, &template_content)?;
+    info!(
+        "Exported markdown files from {} to {}",
+        source_dir.display(),
+        output_dir.display()
+    );
+
     Ok(())
 }

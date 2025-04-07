@@ -187,7 +187,8 @@ fn start_export(
         }
     };
 
-    export_markdown_to_html(&source_dir, output_dir, &template_content)?;
+    export_markdown_to_html(output_dir, &config_obj, &template_content)?;
+
     info!(
         "Exported markdown files from {} to {}",
         source_dir.display(),

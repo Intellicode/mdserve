@@ -50,8 +50,8 @@ pub fn serve_markdown(
 }
 
 pub fn export_markdown_to_html(
-    input_dir: &Path,
     output_dir: &Path,
+    config: &Config,
     template: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Create output directory if it doesn't exist
@@ -59,8 +59,14 @@ pub fn export_markdown_to_html(
         fs::create_dir_all(output_dir)?;
     }
 
+    // Get input directory from config
+    let input_dir = config.get_source_directory();
+
+    // Get base URL from config
+    let base_url = config.get_base_url();
+
     // Iterate over markdown files in the input directory and subdirectories
-    for entry in WalkDir::new(input_dir)
+    for entry in WalkDir::new(&input_dir)
         .into_iter()
         .filter_map(std::result::Result::ok)
     {
@@ -79,12 +85,12 @@ pub fn export_markdown_to_html(
                 header_title: &header_title,
                 description: &description,
                 frontmatter_block: &frontmatter,
-                base_url: "",
+                base_url: &base_url,
             }
             .to_html(template);
 
             // Determine output file path
-            let relative_path = path.strip_prefix(input_dir)?;
+            let relative_path = path.strip_prefix(&input_dir)?;
             let mut output_path = output_dir.join(relative_path);
             output_path.set_extension("html");
 

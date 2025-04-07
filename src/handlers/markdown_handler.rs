@@ -79,10 +79,6 @@ pub fn export_markdown_to_html(
                 header_title: &header_title,
                 description: &description,
                 frontmatter_block: &frontmatter,
-                custom_css: "",
-                custom_header: "",
-                custom_footer: "",
-                navigation_links: "",
                 base_url: "",
             }
             .to_html(template);

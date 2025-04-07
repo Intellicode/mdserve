@@ -10,10 +10,6 @@ pub struct TemplateData<'a> {
     pub header_title: &'a str,
     pub description: &'a str,
     pub frontmatter_block: &'a str,
-    pub custom_css: &'a str,
-    pub custom_header: &'a str,
-    pub custom_footer: &'a str,
-    pub navigation_links: &'a str,
     pub base_url: &'a str,
 }
 
@@ -29,10 +25,6 @@ impl TemplateData<'_> {
                 context.insert("header_title", self.header_title);
                 context.insert("description", self.description);
                 context.insert("frontmatter_block", self.frontmatter_block);
-                context.insert("custom_css", self.custom_css);
-                context.insert("custom_header", self.custom_header);
-                context.insert("custom_footer", self.custom_footer);
-                context.insert("navigation_links", self.navigation_links);
                 context.insert("base_url", self.base_url);
 
                 match t.render("inline_template", &context) {
@@ -138,10 +130,6 @@ pub fn render(
     context.insert("frontmatter_block", frontmatter_block);
 
     // Default values
-    let default_nav = r#"<a href="/" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">Home</a>
-        <a href="/docs" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">Documentation</a>
-        <a href="/about" style="color: var(--link-color); text-decoration: none; font-size: 1.1rem;">About</a>"#;
-    let navigation_links = default_nav;
     let base_url = "/";
 
     // Add config-based customizations
@@ -175,13 +163,9 @@ pub fn render(
                     url, link.text
                 ));
             }
-            context.insert("navigation_links", &nav_links);
-        } else {
-            context.insert("navigation_links", navigation_links);
         }
     } else {
         // No config, use defaults
-        context.insert("navigation_links", navigation_links);
         context.insert("base_url", base_url);
     }
 

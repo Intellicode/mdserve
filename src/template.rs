@@ -16,29 +16,87 @@ pub struct TemplateData<'a> {
 impl TemplateData<'_> {
     // Add a method to render HTML with a provided template
     pub fn to_html(&self, template_content: &str) -> (String, String) {
-        let mut t = Tera::default();
-        match t.add_raw_template("inline_template", template_content) {
-            Ok(_) => {
-                let mut context = Context::new();
-                context.insert("content", self.content);
-                context.insert("title", self.title);
-                context.insert("header_title", self.header_title);
-                context.insert("description", self.description);
-                context.insert("frontmatter_block", self.frontmatter_block);
-                context.insert("base_url", self.base_url);
+        // Create a temporary file for our main template
+        let temp_dir = std::env::temp_dir().join("mdserve_templates");
+        let _ = std::fs::create_dir_all(&temp_dir);
+        let temp_template_path = temp_dir.join("main_template.html");
 
-                match t.render("inline_template", &context) {
-                    Ok(html) => (html, "".to_string()),
-                    Err(e) => (
-                        format!("<h1>Template Error</h1><p>{}</p>", e),
-                        "".to_string(),
-                    ),
-                }
-            }
-            Err(e) => (
-                format!("<h1>Template Error</h1><p>{}</p>", e),
+        if let Err(e) = std::fs::write(&temp_template_path, template_content) {
+            return (
+                format!(
+                    "<h1>Template Error</h1><p>Failed to create temporary template file: {}</p>",
+                    e
+                ),
                 "".to_string(),
-            ),
+            );
+        }
+
+        // Create a proper Tera environment that can handle includes
+        let template_pattern = format!(
+            "{}/**/*.html",
+            std::env::current_dir().unwrap_or_default().display()
+        );
+        let mut tera = match Tera::new(&template_pattern) {
+            Ok(t) => t,
+            Err(e) => {
+                return (
+                    format!(
+                        "<h1>Template Error</h1><p>Failed to initialize Tera with templates: {}</p>",
+                        e
+                    ),
+                    "".to_string(),
+                );
+            }
+        };
+
+        // Also add our temporary template
+        if let Err(e) = tera.add_template_file(&temp_template_path, Some("main_template")) {
+            return (
+                format!(
+                    "<h1>Template Error</h1><p>Failed to add temporary template: {}</p>",
+                    e
+                ),
+                "".to_string(),
+            );
+        }
+
+        // Set up the context
+        let mut context = Context::new();
+        context.insert("content", self.content);
+        context.insert("title", self.title);
+        context.insert("header_title", self.header_title);
+        context.insert("description", self.description);
+        context.insert("frontmatter_block", self.frontmatter_block);
+        context.insert("base_url", self.base_url);
+
+        // Add empty navigation_links by default
+        context.insert("navigation_links", "");
+
+        // Render the template
+        match tera.render("main_template", &context) {
+            Ok(html) => {
+                // Clean up the temporary file
+                let _ = std::fs::remove_file(temp_template_path);
+                (html, "".to_string())
+            }
+            Err(e) => {
+                // Clean up the temporary file
+                let _ = std::fs::remove_file(temp_template_path);
+
+                // Log details for debugging
+                println!("Template error: {}", e);
+                println!("Error kind: {:?}", e.kind);
+                println!("Source: {:?}", e.source());
+
+                (
+                    format!(
+                        "<h1>Template Error</h1><p>{}</p><pre>{:?}</pre><p>This error typically occurs when template includes cannot be resolved.</p>",
+                        e,
+                        e.source()
+                    ),
+                    "".to_string(),
+                )
+            }
         }
     }
 }
@@ -163,6 +221,7 @@ pub fn render(
                     url, link.text
                 ));
             }
+            context.insert("navigation_links", &nav_links);
         }
     } else {
         // No config, use defaults

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.0](https://github.com/Intellicode/mdserve/compare/v0.6.0...v0.7.0) (2025-04-08)
+
+
+### Features
+
+* add baseurl in config ([bcd5039](https://github.com/Intellicode/mdserve/commit/bcd5039b15e39ae33c1a2365a680cbc92f154046))
+
+
+### Bug Fixes
+
+* additional export fixes ([69e8658](https://github.com/Intellicode/mdserve/commit/69e8658fea8ffc47490e3b2318b6331fc7fe00ce))
+* export issue due to template initialization ([828c58a](https://github.com/Intellicode/mdserve/commit/828c58a2a91cd2478c4d4df715261c63dbcaff94))
+
 ## [0.6.0](https://github.com/Intellicode/mdserve/compare/v0.5.3...v0.6.0) (2025-04-05)
 
 

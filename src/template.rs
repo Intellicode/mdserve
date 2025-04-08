@@ -1,6 +1,6 @@
 use crate::config::Config;
 use serde::Serialize;
-use std::path::Path;
+use std::{error::Error, path::Path};
 use tera::{Context, Tera};
 
 #[derive(Serialize)]
@@ -20,7 +20,6 @@ impl TemplateData<'_> {
         let temp_dir = std::env::temp_dir().join("mdserve_templates");
         let _ = std::fs::create_dir_all(&temp_dir);
         let temp_template_path = temp_dir.join("main_template.html");
-
         if let Err(e) = std::fs::write(&temp_template_path, template_content) {
             return (
                 format!(
@@ -31,11 +30,12 @@ impl TemplateData<'_> {
             );
         }
 
+        // Get the template directory from the current working directory
+        let template_dir = std::path::PathBuf::from("./templates");
+
         // Create a proper Tera environment that can handle includes
-        let template_pattern = format!(
-            "{}/**/*.html",
-            std::env::current_dir().unwrap_or_default().display()
-        );
+        let template_pattern = format!("{}/**/*.html", template_dir.display());
+
         let mut tera = match Tera::new(&template_pattern) {
             Ok(t) => t,
             Err(e) => {
@@ -68,7 +68,6 @@ impl TemplateData<'_> {
         context.insert("description", self.description);
         context.insert("frontmatter_block", self.frontmatter_block);
         context.insert("base_url", self.base_url);
-
         // Add empty navigation_links by default
         context.insert("navigation_links", "");
 
@@ -82,12 +81,10 @@ impl TemplateData<'_> {
             Err(e) => {
                 // Clean up the temporary file
                 let _ = std::fs::remove_file(temp_template_path);
-
                 // Log details for debugging
                 println!("Template error: {}", e);
                 println!("Error kind: {:?}", e.kind);
                 println!("Source: {:?}", e.source());
-
                 (
                     format!(
                         "<h1>Template Error</h1><p>{}</p><pre>{:?}</pre><p>This error typically occurs when template includes cannot be resolved.</p>",

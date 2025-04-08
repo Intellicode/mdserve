@@ -204,9 +204,9 @@
 <body>
     {% include "header.html" %}
 
-    {{frontmatter_block}}
+    {{frontmatter_block | safe}}
 
-    {{content}}
+    {{content | safe}}
 
     {% include "footer.html" %}
 </body>
